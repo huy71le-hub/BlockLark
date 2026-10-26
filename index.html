@@ -1,0 +1,659 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Blocklark | Visual website builder</title>
+  <style>
+    * { box-sizing: border-box; }
+    :root { font-family: Inter, ui-sans-serif, system-ui, -apple-system, Segoe UI, sans-serif; color: #172235; background: #edf1f7; }
+    button, input, select, textarea { font: inherit; }
+    button { cursor: pointer; }
+    .app { max-width: 1540px; margin: auto; padding: 14px; }
+    .header, .panel, .source-wrap { background: #fff; border: 1px solid #dce3ee; border-radius: 14px; box-shadow: 0 2px 10px #1f315012; }
+    .header { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; padding: 13px 16px; margin-bottom: 12px; }
+    .logo { display: flex; align-items: center; gap: 10px; font-size: 19px; font-weight: 800; letter-spacing: -0.6px; }
+    .logo-mark { display: grid; place-items: center; background: #2563eb; color: #fff; width: 34px; height: 34px; border-radius: 10px; }
+    .subtitle { font-size: 11px; color: #69768a; font-weight: 500; letter-spacing: 0; }
+    .row { display: flex; align-items: center; gap: 7px; flex-wrap: wrap; }
+    .btn { border-radius: 8px; padding: 8px 11px; border: 1px solid #d9e2ef; background: #fff; color: #263852; font-size: 12px; font-weight: 650; white-space: nowrap; }
+    .btn:hover { background: #f0f5ff; border-color: #91b5f6; }
+    .btn.primary { background: #2563eb; color: #fff; border-color: #2563eb; }
+    .btn.primary:hover { background: #1d4ed8; }
+    .btn.active { background: #e8efff; color: #1d4ed8; border-color: #92b2f8; }
+    .btn.danger { color: #bd3340; }
+    .workspace { display: grid; grid-template-columns: 176px minmax(0, 1fr) 282px; gap: 12px; min-height: 600px; }
+    .panel { overflow: hidden; }
+    .panel-title { padding: 13px 14px; border-bottom: 1px solid #e8edf5; font-weight: 750; font-size: 12px; }
+    .palette { padding: 12px; }
+    .hint { font-size: 11px; color: #66778f; line-height: 1.5; }
+    .block-btn { width: 100%; background: #f8faff; padding: 10px 9px; text-align: left; border: 1px solid #e4eaf4; border-radius: 9px; margin: 0 0 7px; font-size: 12px; font-weight: 640; color: #2a3a53; }
+    .block-btn:hover { background: #eaf1ff; border-color: #a6bff4; }
+    .block-btn span { display: inline-block; width: 23px; color: #3a6fca; }
+    .section { border-top: 1px solid #e8edf5; padding: 13px 12px; }
+    .section h3 { margin: 0 0 10px; font-size: 12px; }
+    .field { min-width: 0; width: 100%; height: 32px; border: 1px solid #d8e1ed; border-radius: 7px; background: #fff; color: #172235; font-size: 12px; padding: 5px 7px; }
+    textarea.field { height: auto; min-height: 56px; resize: vertical; }
+    .field:focus { outline: 2px solid #b8ceff; border-color: #648de9; }
+    label { display: block; font-size: 11px; font-weight: 650; color: #5b6b81; margin: 8px 0 4px; }
+    .mini-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 9px; }
+    .mini-grid.four { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 7px; }
+    .toggle-line { display: flex; align-items: center; gap: 7px; font-size: 12px; margin: 10px 0; }
+    .toggle-line input { accent-color: #2563eb; }
+    input[type="range"] { width: 100%; accent-color: #2563eb; }
+    input[type="color"] { padding: 3px; height: 33px; cursor: pointer; }
+    .stage-panel { min-width: 0; background: #e9eef6; display: flex; flex-direction: column; }
+    .stage-head { flex: 0 0 auto; background: #fff; display: flex; justify-content: space-between; gap: 10px; align-items: center; padding: 11px 13px; border-bottom: 1px solid #dce3ee; }
+    .stage-shell { flex: 1; min-height: 525px; padding: 32px 24px; overflow: auto; }
+    .stage { background: #fff; position: relative; margin: 0 auto; box-shadow: 0 6px 25px #30456526; touch-action: none; overflow: hidden; }
+    .stage.grid-visible { background-image: linear-gradient(to right, #94a3b81e 1px, transparent 1px), linear-gradient(to bottom, #94a3b81e 1px, transparent 1px); background-size: var(--grid-size) var(--grid-size); }
+    .element { position: absolute; display: flex; align-items: center; overflow: visible; line-height: 1.2; cursor: move; user-select: none; touch-action: none; white-space: pre-wrap; }
+    .element > .content { width: 100%; pointer-events: none; max-height: 100%; overflow: hidden; }
+    .element[data-kind="image"] { overflow: hidden; }
+    .element > img.content { height: 100%; max-height: none; border-radius: inherit; display: block; }
+    .element.selected { outline: 2px solid #2563eb; outline-offset: 2px; z-index: 500 !important; }
+    .resize-handle { display: none; position: absolute; width: 13px; height: 13px; bottom: -8px; right: -8px; border: 2px solid white; border-radius: 3px; background: #2563eb; cursor: nwse-resize; }
+    .element.selected .resize-handle { display: block; }
+    .element.test-mode { cursor: default; }
+    .element.test-mode.selected { outline: 0; }
+    .element.test-mode .resize-handle { display: none; }
+    .element[data-kind="button"].test-mode { cursor: pointer; }
+    .inspector { padding: 11px 13px 16px; max-height: 745px; overflow: auto; }
+    .panel-tabs { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 5px; padding: 9px; border-bottom: 1px solid #e9edf4; }
+    .tab { border: 0; padding: 8px 3px; border-radius: 8px; font-size: 12px; background: #f4f7fb; color: #50637b; font-weight: 700; }
+    .tab.active { background: #dfeaff; color: #1d4ed8; }
+    .pill { background: #eef4ff; border-radius: 30px; padding: 3px 7px; font-size: 10px; color: #2c60b4; }
+    .rule { border: 1px solid #e0e7f1; background: #fafcff; border-radius: 9px; padding: 10px; margin: 9px 0; }
+    .vars-list { display: flex; flex-direction: column; gap: 7px; margin: 9px 0; }
+    .var-item { border: 1px solid #e4eaf3; border-radius: 8px; padding: 7px; }
+    .layers { display: flex; flex-direction: column; gap: 5px; max-height: 185px; overflow: auto; }
+    .layer { width: 100%; display: flex; justify-content: space-between; text-align: left; gap: 7px; font-size: 11px; padding: 7px; border: 1px solid #e3e9f3; border-radius: 7px; background: #f9fbff; color: #253852; cursor: pointer; }
+    .layer.selected { border-color: #5089ec; background: #e8f0ff; }
+    .source-wrap { margin-top: 12px; overflow: hidden; }
+    .source-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; padding: 11px 14px; border-bottom: 1px solid #e8edf5; }
+    .source-head b { font-size: 13px; }
+    .code-area { width: 100%; height: 230px; resize: vertical; font: 11px/1.55 ui-monospace, SFMono-Regular, Consolas, monospace; color: #cde1ff; background: #142033; border: 0; padding: 15px 17px; outline: none; tab-size: 2; }
+    .code-preview { width: 100%; height: 340px; border: 0; background: white; }
+    .empty { padding: 20px 4px; color: #76869a; font-size: 12px; line-height: 1.6; }
+    .footer { margin-top: 9px; color: #65758d; font-size: 11px; }
+    @media (max-width: 1100px) { .workspace { grid-template-columns: 165px minmax(0, 1fr); } .right { grid-column: 1 / -1; } .inspector { max-height: none; } }
+    @media (max-width: 650px) { .app { padding: 6px; } .workspace { grid-template-columns: 1fr; } .stage-shell { min-height: 420px; padding: 18px; } .palette-items { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; } .palette-items .block-btn { margin: 0; } .right { grid-column: auto; } }
+    body.dark { background:#0b1220; color:#e5edf9; }
+    body.dark .header, body.dark .panel, body.dark .source-wrap, body.dark .stage-head { background:#141e30; border-color:#334155; color:#e5edf9; }
+    body.dark .stage-panel, body.dark .stage-shell { background:#101827; }
+    body.dark .btn, body.dark .field, body.dark .block-btn, body.dark .layer, body.dark .var-item, body.dark .rule { background:#1d2b40; border-color:#40506a; color:#e5edf9; }
+    body.dark .btn:hover, body.dark .block-btn:hover { background:#283d57; }
+    body.dark .btn.primary { background:#2563eb; color:#fff; }
+    body.dark .tab { background:#203047; color:#d2deed; }
+    body.dark .tab.active { background:#244b88; color:#fff; }
+    body.dark .hint, body.dark .subtitle, body.dark label, body.dark .footer { color:#a8b7ce; }
+    body.dark .panel-title, body.dark .section, body.dark .stage-head, body.dark .source-head, body.dark .panel-tabs { border-color:#334155; }
+    body.dark .empty { color:#afbed1; }
+    body.dark .code-area { background:#080e1b; }
+    .collapsed-content { display:none !important; }
+    .quickbar { display:flex; align-items:center; gap:7px; flex-wrap:wrap; padding:9px 12px; border-bottom:1px solid #e8edf5; }
+    body.dark .quickbar { border-color:#334155; }
+    .quickbar .btn { padding:6px 9px; }
+    .compact-toggle { width:100%; text-align:left; border:0; cursor:pointer; color:inherit; background:transparent; font-weight:700; padding:12px 13px; }
+    .shortcut-hint { font-size:10px; color:#8191a8; padding:0 12px 10px; }
+  </style>
+</head>
+<body>
+<div class="app" id="studio">
+  <header class="header">
+    <div class="logo"><span class="logo-mark">▦</span><div>Blocklark<div class="subtitle">Design visually. Export real HTML.</div></div></div>
+    <div class="row">
+      <button class="btn" id="themeToggle">☾ Dark</button><button class="btn" id="newProject">New</button>
+      <button class="btn" id="saveProject">Save project</button>
+      <button class="btn" id="loadProject">Load project</button>
+      <input id="projectFile" type="file" accept=".json,application/json" hidden>
+      <button class="btn" id="testToggle">▶ Test interactions</button>
+      <button class="btn primary" id="downloadHTML">↓ Export HTML</button>
+    </div>
+  </header>
+  <div class="workspace">
+    <aside class="panel">
+      <div class="panel-title">＋ ADD ELEMENTS</div>
+      <div class="palette">
+        <div class="palette-items">
+          <button class="block-btn" data-add="heading" draggable="true"><span>H</span> Heading</button>
+          <button class="block-btn" data-add="text" draggable="true"><span>¶</span> Text</button>
+          <button class="block-btn" data-add="button" draggable="true"><span>▣</span> Button</button>
+          <button class="block-btn" data-add="box" draggable="true"><span>□</span> Box</button>
+          <button class="block-btn" data-add="image" draggable="true"><span>▧</span> Image URL</button>
+          <button class="block-btn" data-add="variable" draggable="true"><span>⌗</span> Variable text</button>
+        </div>
+        <p class="hint">Click to add, or drag onto the canvas.</p>
+      </div>
+      <div class="section">
+        <h3>⊞ Snap grid</h3>
+        <label class="toggle-line"><input type="checkbox" id="snapToggle" checked> Snap to grid</label>
+        <label class="toggle-line"><input type="checkbox" id="gridToggle" checked> Show grid</label>
+        <div class="row" style="justify-content:space-between"><label for="gridSlider">Grid spacing</label><strong id="gridSizeLabel" style="font-size:12px">16 px</strong></div>
+        <input type="range" id="gridSlider" min="4" max="64" step="2" value="16">
+        <p class="hint">Grid spacing changes snapping precision. You can turn snapping and the visible grid on/off separately.</p>
+      </div>
+      <details class="section" id="layersSection"><summary style="cursor:pointer;font-size:12px;font-weight:700">◫ Layers</summary>
+        <div class="layers" id="layers"></div>
+        <div class="row" style="margin-top:8px"><button class="btn" id="layerUp">Move up</button><button class="btn" id="layerDown">Move down</button></div>
+      </details>
+      <details class="section" id="variablesSection"><summary style="cursor:pointer;font-size:12px;font-weight:700">◇ Variables</summary>
+        <div id="variableList" class="vars-list"></div>
+        <input class="field" id="newVarName" placeholder="Variable name, e.g. coins" maxlength="28">
+        <div class="row" style="margin-top:7px"><input class="field" id="newVarValue" placeholder="Start value" value="0" style="flex:1;width:75px"><button class="btn" id="addVar">+ Add</button></div>
+        <p class="hint" id="varError"></p>
+      </details>
+      <details class="section" id="miscSection"><summary style="cursor:pointer;font-size:12px;font-weight:700">✦ Misc tools</summary>
+        <p class="hint"><b>Current time and date:</b> Add a variable, select a button, then go to Actions → When clicked → Set variable to current time/date.</p>
+        <p class="hint"><b>Random numbers:</b> Use Actions → Set variable to a random number.</p>
+        <p class="hint"><b>Show values in text:</b> Write <code>Time: {clock}</code> or <code>Score: {score}</code> in any text box.</p>
+        <p class="hint"><b>Move using variables:</b> Use Actions → Set position from variables.</p>
+      </details>
+      <details class="section" id="autoRulesSection" open><summary style="cursor:pointer;font-size:12px;font-weight:700">⚡ When a variable reaches a value</summary>
+        <p class="hint">Example: When score is 10 or more, set level to 2. Fires once each time the condition becomes true.</p>
+        <div id="autoRules"></div>
+        <button class="btn primary" id="addAutoRule">＋ Add a variable rule</button>
+      </details>
+    </aside>
+    <main class="panel stage-panel">
+      <div class="stage-head">
+        <div><strong style="font-size:13px">Canvas</strong><div class="hint" id="canvasDimensions">820 × 520 px</div></div>
+        <div class="row"><span class="pill" id="modeLabel">DESIGN MODE</span><button class="btn" id="duplicate">Duplicate</button><button class="btn danger" id="deleteElement">Delete</button></div>
+      </div>
+      <div class="quickbar"><button class="btn" id="undoBtn" title="Ctrl+Z">↶ Undo</button><button class="btn" id="redoBtn" title="Ctrl+Y or Ctrl+Shift+Z">↷ Redo</button><button class="btn" id="centerBtn" title="Center the selected element horizontally and vertically">⊕ Center selected</button><button class="btn" id="addCenterText">＋ Center text</button><span class="hint">Ctrl+C / V / D · Del / Backspace</span></div>
+      <div class="stage-shell"><div class="stage grid-visible" id="stage" style="width:820px;height:520px;--grid-size:16px;"></div></div>
+    </main>
+    <aside class="panel right">
+      <div class="panel-title">⚙ INSPECTOR</div>
+      <div class="panel-tabs"><button class="tab active" data-tab="style">Style</button><button class="tab" data-tab="actions">Actions</button><button class="tab" data-tab="rules">Rules</button></div>
+      <div class="inspector" id="inspector"></div>
+    </aside>
+  </div>
+  <section class="source-wrap">
+    <div class="source-head"><div><b>⌘ HTML + CSS + JavaScript</b><div class="hint" id="sourceStatus">Clean generated source · no comments</div></div><div class="row"><button class="btn" id="toggleCode">Show code</button><button class="btn" id="editSource">✎ Edit code</button><button class="btn" id="copySource">Copy</button><button class="btn" id="previewSource">Run code</button></div></div>
+    <textarea id="source" class="code-area" spellcheck="false" readonly hidden></textarea>
+    <iframe id="previewFrame" class="code-preview" sandbox="allow-scripts" title="Generated website preview" hidden></iframe>
+  </section>
+  <div class="footer">Design mode edits the page. Test mode runs actions and conditions. The code editor lets you customize exported source, but manual code edits don't sync back to visual elements.</div>
+</div>
+<script>
+(() => {
+  const root = document.getElementById('studio');
+  const $ = id => root.querySelector('#' + id);
+  const stage = $('stage');
+  const fonts = ['Arial', 'Georgia', 'Verdana', 'Tahoma', 'Trebuchet MS', 'Courier New', 'Times New Roman', 'system-ui'];
+  const types = { heading: 'Heading', text: 'Text', button: 'Button', box: 'Box', image: 'Image', variable: 'Variable text' };
+  const defaults = {
+    heading: { w: 450, h: 65, text: 'Build something awesome', fontSize: 34, weight: 700, tag: 'h1', bg: 'transparent', color: '#1e293b' },
+    text: { w: 410, h: 58, text: 'Drag things around and make this page yours.', fontSize: 16, bg: 'transparent', color: '#475569', tag: 'p' },
+    button: { w: 170, h: 48, text: 'Click me', buttonImage: '', buttonImageMode: 'icon', imageX: 8, imageY: 12, imageW: 24, imageH: 24, fontSize: 16, bg: '#2563eb', color: '#ffffff', radius: 10, weight: 700, align: 'center', tag: 'button' },
+    box: { w: 180, h: 105, text: '', bg: '#bfdbfe', radius: 13, tag: 'div' },
+    image: { w: 220, h: 140, src: '', alt: 'My image', bg: '#e0e7ff', radius: 12, tag: 'img' },
+    variable: { w: 200, h: 42, text: 'Score: ', bind: 'score', fontSize: 22, weight: 700, bg: 'transparent', tag: 'div' }
+  };
+  let autoRules = [];
+  let triggeredRules = {};
+  let items = [], variables = { score: 0 }, selectedId = null, nextId = 1;
+  let snap = true, showGrid = true, gridSize = 16, canvasWidth = 820, canvasHeight = 520, canvasBg = '#ffffff';
+  let mode = 'design', tab = 'style', drag = null, runtimeVars = {}, live = {}, customSource = false;
+  let history = [], future = [], copiedElement = null, restoring = false;
+  function snapshot() { return JSON.stringify({ items, variables, autoRules, selectedId, nextId, canvasWidth, canvasHeight, canvasBg }); }
+  function record() { if (restoring || mode !== 'design') return; const now = snapshot(); if (history.at(-1) !== now) { history.push(now); if (history.length > 100) history.shift(); } future = []; }
+  function applySnapshot(state) { restoring = true; const v=JSON.parse(state); Object.assign(window.__pixelHistoryState || {}, {}); items=v.items; variables=v.variables; autoRules=v.autoRules || []; selectedId=v.selectedId; nextId=v.nextId; canvasWidth=v.canvasWidth; canvasHeight=v.canvasHeight; canvasBg=v.canvasBg; render(); restoring=false; }
+  function undo() { if (!history.length || mode !== 'design') return; future.push(snapshot()); applySnapshot(history.pop()); }
+  function redo() { if (!future.length || mode !== 'design') return; history.push(snapshot()); applySnapshot(future.pop()); }
+  function duplicateSelected(dx=gridSize,dy=gridSize) { const o=selected(); if (!o || mode !== 'design') return; record(); const copy=structuredClone(o); copy.id=nextId++; copy.x=clamp(o.x+dx,0,Math.max(0,canvasWidth-o.w)); copy.y=clamp(o.y+dy,0,Math.max(0,canvasHeight-o.h)); items.push(copy); selectedId=copy.id; render(); }
+  function deleteSelected() { if (!selected() || mode !== 'design') return; record(); items=items.filter(o=>o.id!==selectedId); selectedId=null; render(); }
+  function centerSelected() { const o=selected(); if(!o || mode!=='design')return; record(); o.x=snapValue((canvasWidth-o.w)/2); o.y=snapValue((canvasHeight-o.h)/2); render(); }
+
+  const h = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' }[c]));
+  const attr = h;
+  const parse = s => /^-?(?:\d+\.?\d*|\.\d+)$/.test(String(s).trim()) ? Number(s) : String(s);
+  const val = id => $(id).value;
+  const selected = () => items.find(o => o.id === selectedId);
+  const byId = id => items.find(o => o.id === Number(id));
+  const snapValue = n => snap ? Math.round(n / gridSize) * gridSize : Math.round(n);
+  const clamp = (n, low, high) => Math.max(low, Math.min(high, n));
+  const validUrl = url => /^(https?:\/\/|data:image\/|\/|\.\/|\.\.\/)/i.test(url || '');
+  const options = (arr, current) => arr.map(([value, label]) => `<option value="${attr(value)}" ${String(value) === String(current) ? 'selected' : ''}>${h(label)}</option>`).join('');
+  const fontOptions = current => options(fonts.map(v => [v, v]), current);
+  const targetOptions = current => options(items.map(o => [o.id, `${types[o.type]} #${o.id} · ${o.text.slice(0, 16) || o.alt || ''}`]), current);
+  const variableOptions = current => options(Object.keys(variables).map(k => [k, k]), current);
+  function add(type, x, y) {
+    if (!defaults[type] || mode !== 'design') return;
+    const d = defaults[type], offset = items.length * 18;
+    const o = { id: nextId++, type, x: snapValue(clamp(x ?? 42 + offset, 0, canvasWidth - d.w)), y: snapValue(clamp(y ?? 42 + offset, 0, canvasHeight - d.h)), w: d.w, h: d.h, text: '', src: '', alt: '', font: 'Arial', fontSize: 16, weight: 400, italic: false, align: 'left', bg: '#ffffff', color: '#1f2937', radius: 0, border: 0, borderColor: '#94a3b8', opacity: 100, fit: 'cover', shadow: false, rotation: 0, blur: 0, buttonImage: '', buttonImageMode: 'icon', imageX: 8, imageY: 12, imageW: 24, imageH: 24, initiallyHidden: false, tag: 'div', bind: '', condition: null, actions: [], ...d };
+    record(); items.push(o); selectedId = o.id; tab = 'style'; render();
+  }
+  function currentPosition(o) { return mode === 'test' && live[o.id] ? live[o.id] : o; }
+  function valueOf(o) { const state = mode === 'test' ? runtimeVars : variables; return o.type === 'variable' ? o.text + (state[o.bind] ?? '') : String(o.text).replace(/\{([A-Za-z_]\w*)\}/g, (_,name) => state[name] ?? ''); }
+  function passes(o) {
+    if (mode !== 'test') return true;
+    const st = live[o.id]; if (st && !st.visible) return false;
+    const rules = o.conditions || (o.condition ? [o.condition] : []);
+    return rules.every(c => {
+      if (c.kind === 'touching') {
+        const other = byId(c.target); if (!other) return false;
+        const a = currentPosition(o), b = currentPosition(other);
+        return a.x < b.x + other.w && a.x + o.w > b.x && a.y < b.y + other.h && a.y + o.h > b.y;
+      }
+      return c.variable in runtimeVars && compareValues(runtimeVars[c.variable],c.op,parse(c.value));
+    });
+  }
+  function paint(el, o) {
+    const pos = currentPosition(o);
+    Object.assign(el.style, { left: pos.x + 'px', top: pos.y + 'px', width: o.w + 'px', height: o.h + 'px', backgroundColor: o.bg, color: o.color, borderRadius: o.radius + 'px', border: `${o.border}px solid ${o.borderColor}`, opacity: String(o.opacity / 100), fontFamily: o.font, fontSize: o.fontSize + 'px', fontWeight: String(o.weight), fontStyle: o.italic ? 'italic' : 'normal', textAlign: o.align, justifyContent: o.align === 'center' ? 'center' : o.align === 'right' ? 'flex-end' : 'flex-start', boxShadow: o.shadow ? '0 8px 20px #14233b3a' : 'none', transform: `rotate(${Number(o.rotation)||0}deg)`, filter: `blur(${Number(o.blur)||0}px)`, display: passes(o) ? 'flex' : 'none' });
+    el.classList.toggle('selected', mode === 'design' && o.id === selectedId);
+    el.classList.toggle('test-mode', mode === 'test');
+    const content = el.querySelector('.content');
+    if (o.type === 'image') {
+      if (validUrl(o.src)) {
+        if (content.tagName !== 'IMG') { const img = document.createElement('img'); img.className = 'content'; content.replaceWith(img); }
+        const img = el.querySelector('img.content'); if (img.src !== o.src) img.src = o.src; img.alt = o.alt; img.style.objectFit = o.fit;
+      } else {
+        if (content.tagName === 'IMG') { const div = document.createElement('div'); div.className = 'content'; content.replaceWith(div); }
+        el.querySelector('.content').textContent = '▧  Paste an image URL';
+      }
+    } else if (o.type === 'button') {
+      content.textContent = '';
+      content.style.display = 'flex';
+      content.style.alignItems = 'center';
+      content.style.justifyContent = 'center';
+      content.style.gap = '7px';
+      content.style.height = '100%';
+      content.style.position = 'relative';
+      content.style.width = '100%';
+      if (validUrl(o.buttonImage) && o.buttonImageMode === 'background') {
+        el.style.backgroundImage = `url("${o.buttonImage.replace(/["\\]/g, '')}")`;
+        el.style.backgroundSize = 'cover';
+        el.style.backgroundPosition = 'center';
+      } else {
+        el.style.backgroundImage = 'none';
+        if (validUrl(o.buttonImage)) {
+          const img = document.createElement('img'); img.src = o.buttonImage; img.alt = '';
+          img.className = 'button-art';
+          img.style.cssText = o.buttonImageMode === 'free' ? `position:absolute;left:${o.imageX ?? 8}px;top:${o.imageY ?? 12}px;width:${o.imageW ?? 24}px;height:${o.imageH ?? 24}px;object-fit:contain;pointer-events:auto;cursor:grab;z-index:2` : 'width:24px;height:24px;object-fit:contain;flex-shrink:0;pointer-events:none';
+          content.appendChild(img);
+        }
+      }
+      const label = document.createElement('span'); label.textContent = valueOf(o); content.appendChild(label);
+    } else content.textContent = valueOf(o);
+  }
+  function renderStage() {
+    stage.innerHTML = ''; stage.style.width = canvasWidth + 'px'; stage.style.height = canvasHeight + 'px'; stage.style.backgroundColor = canvasBg; stage.style.setProperty('--grid-size', gridSize + 'px'); stage.classList.toggle('grid-visible', showGrid && mode === 'design');
+    items.forEach((o, index) => {
+      const el = document.createElement('div'); el.className = 'element'; el.dataset.id = o.id; el.dataset.kind = o.type; el.style.zIndex = String(index + 1);
+      const c = document.createElement('div'); c.className = 'content'; const handle = document.createElement('div'); handle.className = 'resize-handle'; el.append(c, handle); stage.appendChild(el); paint(el, o);
+    });
+    $('modeLabel').textContent = mode === 'design' ? 'DESIGN MODE' : 'TEST MODE';
+    $('testToggle').textContent = mode === 'design' ? '▶ Test interactions' : '■ Back to design';
+    $('testToggle').classList.toggle('active', mode === 'test');
+    $('canvasDimensions').textContent = `${canvasWidth} × ${canvasHeight} px`;
+  }
+  function renderLayers() {
+    $('layers').innerHTML = [...items].reverse().map(o => `<button type="button" class="layer ${o.id === selectedId ? 'selected' : ''}" data-layer="${o.id}"><span>${h(types[o.type])} #${o.id}</span><span> ${h((o.text || o.alt || '').slice(0, 10))}</span></button>`).join('');
+  }
+  function renderVariables() {
+    $('variableList').innerHTML = Object.entries(variables).map(([k, v]) => `<div class="var-item"><div class="row" style="justify-content:space-between"><strong style="font-size:11px">${h(k)}</strong><button class="btn danger" style="padding:3px 6px" data-del-var="${attr(k)}">×</button></div><input class="field" style="margin-top:5px" data-var-value="${attr(k)}" value="${attr(v)}" aria-label="Initial value for ${attr(k)}"></div>`).join('');
+  }
+  function p(name, value, kind='text', extra='') { return `<label>${name}</label><input class="field" type="${kind}" data-prop="${value}" ${extra}>`; }
+  function renderInspector() {
+    root.querySelectorAll('.tab').forEach(n => n.classList.toggle('active', n.dataset.tab === tab));
+    const panel = $('inspector'), o = selected();
+    if (tab === 'style' && !o) {
+      panel.innerHTML = `<h3 style="font-size:13px">Page settings</h3><label>Page background</label><input class="field" type="color" data-page="bg" value="${canvasBg}"><div class="mini-grid"><div><label>Width (px)</label><input class="field" type="number" data-page="width" min="300" max="1600" value="${canvasWidth}"></div><div><label>Height (px)</label><input class="field" type="number" data-page="height" min="300" max="1200" value="${canvasHeight}"></div></div><div class="empty">Click any item on the canvas to customize it. Double-click a text element to jump to its text field.</div>`;
+      return;
+    }
+    if (!o) { panel.innerHTML = `<div class="empty">Select an element to edit ${tab === 'actions' ? 'its click actions' : 'its conditions'}.</div>`; return; }
+    if (tab === 'style') {
+      panel.innerHTML = `<div class="row" style="justify-content:space-between"><strong style="font-size:13px">${types[o.type]} #${o.id}</strong><span class="pill">${o.type.toUpperCase()}</span></div>
+        ${o.type !== 'image' ? `<label>${o.type === 'variable' ? 'Text before value' : 'Text content'}</label><textarea class="field" data-prop="text" id="textEditor">${h(o.text)}</textarea>` : `<label>Image URL</label><input class="field" data-prop="src" value="${attr(o.src)}" placeholder="https://example.com/image.jpg"><label>Alt text</label><input class="field" data-prop="alt" value="${attr(o.alt)}"><label>Image fit</label><select class="field" data-prop="fit">${options([['cover','Cover'],['contain','Contain'],['fill','Stretch']], o.fit)}</select>`}
+        ${o.type === 'button' ? `<label>Button image URL (optional)</label><input class="field" data-prop="buttonImage" value="${attr(o.buttonImage || '')}" placeholder="https://example.com/icon.png"><label>How should the image appear?</label><select class="field" data-prop="buttonImageMode">${options([['icon','Small image beside text'],['free','Place image anywhere (drag it)'],['background','Fill the whole button behind text']], o.buttonImageMode || 'icon')}</select>${o.buttonImageMode === 'free' ? `<p class="hint">Drag the image inside the button to place it anywhere, including over the words. Resize it below.</p><div class="mini-grid four"><div><label>Image X</label><input class="field" type="number" data-prop="imageX" value="${o.imageX ?? 8}"></div><div><label>Image Y</label><input class="field" type="number" data-prop="imageY" value="${o.imageY ?? 12}"></div><div><label>Image width</label><input class="field" type="number" data-prop="imageW" value="${o.imageW ?? 24}"></div><div><label>Image height</label><input class="field" type="number" data-prop="imageH" value="${o.imageH ?? 24}"></div></div>` : ''}<p class="hint">The button remains clickable. Leave the URL blank for a text-only button.</p>` : ''}
+        ${o.type === 'variable' ? `<label>Read variable</label><select class="field" data-prop="bind">${variableOptions(o.bind)}</select>` : ''}
+        ${o.type === 'heading' || o.type === 'text' ? `<label>HTML text type</label><select class="field" data-prop="tag">${options([['h1','H1 heading'],['h2','H2 heading'],['h3','H3 heading'],['p','Paragraph'],['span','Span'],['strong','Bold text']],o.tag)}</select>` : ''}
+        <div class="mini-grid four"><div><label>X</label><input class="field" type="number" data-prop="x" value="${o.x}"></div><div><label>Y</label><input class="field" type="number" data-prop="y" value="${o.y}"></div><div><label>W</label><input class="field" type="number" data-prop="w" value="${o.w}"></div><div><label>H</label><input class="field" type="number" data-prop="h" value="${o.h}"></div></div>
+        <div class="mini-grid"><div><label>Fill color</label><input class="field" type="color" data-prop="bg" value="${o.bg === 'transparent' ? '#ffffff' : o.bg}"></div><div><label>Text color</label><input class="field" type="color" data-prop="color" value="${o.color}"></div></div>
+        <label class="toggle-line"><input type="checkbox" data-prop="transparent" ${o.bg === 'transparent' ? 'checked' : ''}> Transparent background</label>
+        <label>Font family</label><select class="field" data-prop="font">${fontOptions(o.font)}</select>
+        <div class="mini-grid"><div><label>Font size (px)</label><input class="field" type="number" data-prop="fontSize" min="8" max="120" value="${o.fontSize}"></div><div><label>Font weight</label><select class="field" data-prop="weight">${options([[400,'Regular'],[500,'Medium'],[700,'Bold'],[900,'Extra bold']],o.weight)}</select></div></div>
+        <div class="mini-grid"><div><label>Text alignment</label><select class="field" data-prop="align">${options([['left','Left'],['center','Center'],['right','Right']],o.align)}</select></div><div><label>Rounded corners (px)</label><input class="field" type="number" data-prop="radius" min="0" value="${o.radius}"></div></div>
+        <div class="mini-grid"><div><label>Border (px)</label><input class="field" type="number" data-prop="border" min="0" max="30" value="${o.border}"></div><div><label>Border color</label><input class="field" type="color" data-prop="borderColor" value="${o.borderColor}"></div></div>
+        <label>Opacity · ${o.opacity}%</label><input type="range" data-prop="opacity" min="0" max="100" value="${o.opacity}">
+        <div class="mini-grid"><div><label>Rotate (degrees)</label><input class="field" type="number" data-prop="rotation" value="${o.rotation||0}"></div><div><label>Blur (pixels)</label><input class="field" type="number" min="0" max="30" data-prop="blur" value="${o.blur||0}"></div></div>
+        <label class="toggle-line"><input type="checkbox" data-prop="italic" ${o.italic ? 'checked' : ''}> Italic</label>
+        <label class="toggle-line"><input type="checkbox" data-prop="shadow" ${o.shadow ? 'checked' : ''}> Drop shadow</label>
+        <label class="toggle-line"><input type="checkbox" data-prop="initiallyHidden" ${o.initiallyHidden ? 'checked' : ''}> Start hidden (test/export)</label>`;
+      return;
+    }
+    if (tab === 'rules') {
+      const rules = o.conditions || (o.condition ? [o.condition] : []);
+      panel.innerHTML = `<strong style="font-size:13px">Show this element when...</strong><p class="hint">Add multiple conditions. All must be true for the element to appear. The Touching option detects overlapping elements in Test mode.</p>
+      ${rules.map((c,i)=>`<div class="rule"><div class="row" style="justify-content:space-between"><b style="font-size:12px">Condition ${i+1}</b><button class="btn danger" data-rule-remove="${i}">Remove</button></div>
+        <label>Check</label><select class="field" data-rule-index="${i}" data-rule-key="kind">${options([['variable','Variable value'],['touching','Touching another element']],c.kind||'variable')}</select>
+        ${(c.kind||'variable')==='touching'?`<label>Touching which element?</label><select class="field" data-rule-index="${i}" data-rule-key="target">${targetOptions(c.target)}</select>`:`<label>Variable</label><select class="field" data-rule-index="${i}" data-rule-key="variable">${variableOptions(c.variable)}</select><label>Comparison</label><select class="field" data-rule-index="${i}" data-rule-key="op">${options([['==','Equals'],['!=','Not equal'],['>=','At least'],['>','Greater than'],['<=','At most'],['<','Less than']],c.op)}</select><label>Compare with</label><input class="field" data-rule-index="${i}" data-rule-key="value" value="${attr(c.value)}">`}
+      </div>`).join('')}
+      <button class="btn primary" id="addCondition">＋ Add condition</button>`;
+      return;
+    }
+    if (o.type !== 'button') {
+      panel.innerHTML = `<strong style="font-size:13px">Click actions</strong><div class="empty">Select a <b>button</b> element to make it change variables, show or hide elements, or move elements.</div>`;
+      return;
+    }
+    panel.innerHTML = `<strong style="font-size:13px">When this button is clicked...</strong><p class="hint">Choose what happens when someone clicks this button. Multiple actions happen in order. Try them with Test interactions.</p>
+      ${o.actions.map((a, i) => `<div class="rule"><div class="row" style="justify-content:space-between"><strong style="font-size:11px">Action ${i+1}</strong><button class="btn danger" data-delete-action="${i}" style="padding:3px 7px">Remove</button></div>
+        <label>What happens?</label><select class="field" data-action-index="${i}" data-action-key="type">${options([['add','Increase or decrease a number'],['set','Change a variable to a value'],['random','Set variable to a random number'],['time','Set variable to current time'],['date','Set variable to today’s date'],['position','Set position from variables'],['randomPosition','Move element to a random position'],['show','Make an element appear'],['hide','Make an element disappear'],['toggle','Show if hidden, hide if visible'],['move','Move an element']],a.type)}</select>
+        ${['add','set','random','time','date'].includes(a.type) ? `<label>Variable</label><select class="field" data-action-index="${i}" data-action-key="variable">${variableOptions(a.variable)}</select><label>${a.type === 'add' ? 'Amount to add' : a.type === 'random' ? 'Maximum random number (0 to this)' : a.type === 'set' ? 'New value' : 'Format (ignored for clock/date)'}</label><input class="field" data-action-index="${i}" data-action-key="value" value="${attr(a.value)}">` : ''}
+        ${['show','hide','toggle','move','position','randomPosition'].includes(a.type) ? `<label>Target element</label><select class="field" data-action-index="${i}" data-action-key="target">${targetOptions(a.target)}</select>` : ''}
+        ${a.type === 'position' ? `<div class="mini-grid"><div><label>Read X from variable</label><select class="field" data-action-index="${i}" data-action-key="xvar">${variableOptions(a.xvar)}</select></div><div><label>Read Y from variable</label><select class="field" data-action-index="${i}" data-action-key="yvar">${variableOptions(a.yvar)}</select></div></div>` : ''}
+        ${a.type === 'move' ? `<div class="mini-grid"><div><label>Move X by</label><input class="field" type="number" data-action-index="${i}" data-action-key="dx" value="${Number(a.dx)||0}"></div><div><label>Move Y by</label><input class="field" type="number" data-action-index="${i}" data-action-key="dy" value="${Number(a.dy)||0}"></div></div>` : ''}
+      </div>`).join('')}
+      <button class="btn primary" id="addAction" ${Object.keys(variables).length ? '' : 'disabled'}>＋ Add action</button><p class="hint">Create a variable first for variable actions. Show, hide, and move work with any element.</p>`;
+  }
+  function compareValues(a, op, b) {
+    if (op === '==') return String(a) === String(b);
+    if (op === '!=') return String(a) !== String(b);
+    if (!Number.isFinite(Number(a)) || !Number.isFinite(Number(b))) return false;
+    return op === '>=' ? Number(a) >= Number(b) : op === '<=' ? Number(a) <= Number(b) : op === '>' ? Number(a) > Number(b) : Number(a) < Number(b);
+  }
+  function runAutoRules(state) {
+    for (let pass=0; pass<Math.max(1,autoRules.length+1);pass++) {
+      let changed = false;
+      autoRules.forEach((r,i) => {
+        const matches = compareValues(state[r.watch],r.op,parse(r.value));
+        if (!matches) triggeredRules[i]=false;
+        if (!matches || triggeredRules[i] || !(r.target in state)) return;
+        triggeredRules[i]=true;
+        const next = r.action === 'add' ? (Number(state[r.target])||0)+(Number(state[r.amount])||Number(r.amount)||0) : (r.source === 'variable' ? state[r.amount] : parse(r.amount));
+        if (state[r.target] !== next) { state[r.target]=next; changed=true; }
+      });
+      if (!changed) break;
+    }
+  }
+  function renderAutoRules() {
+    $('autoRules').innerHTML = autoRules.map((r,i) => `<div class="rule">
+      <div class="row" style="justify-content:space-between"><b style="font-size:12px">Rule ${i+1}</b><button class="btn danger" data-remove-auto="${i}">Remove</button></div>
+      <label>When this variable</label><select class="field" data-auto="${i}" data-field="watch">${variableOptions(r.watch)}</select>
+      <label>Is...</label><select class="field" data-auto="${i}" data-field="op">${options([['==','Equal to'],['!=','Not equal to'],['>=','At least'],['>','Greater than'],['<=','At most'],['<','Less than']],r.op)}</select>
+      <label>This amount</label><input class="field" data-auto="${i}" data-field="value" value="${attr(r.value)}">
+      <label>Then change variable</label><select class="field" data-auto="${i}" data-field="target">${variableOptions(r.target)}</select>
+      <label>What should happen?</label><select class="field" data-auto="${i}" data-field="action">${options([['set','Set it to a value'],['add','Add an amount to it']],r.action)}</select>
+      <label>${r.action==='add'?'Amount to add':'New value'}</label><input class="field" data-auto="${i}" data-field="amount" value="${attr(r.amount)}">
+      <label class="toggle-line"><input type="checkbox" data-auto="${i}" data-field="source" ${r.source==='variable'?'checked':''}> Use another variable as the new value (type its name above)</label>
+      </div>`).join('');
+  }
+  function render() { renderStage(); renderLayers(); renderVariables(); renderAutoRules(); renderInspector(); updateCode(); }
+  function refresh() { renderStage(); renderLayers(); updateCode(); }
+  function updateCode() { if (!customSource) $('source').value = generateHTML(); }
+  function beginTest() {
+    mode = 'test'; selectedId = null; runtimeVars = { ...variables }; triggeredRules = {}; runAutoRules(runtimeVars); live = Object.fromEntries(items.map(o => [o.id, { x: o.x, y: o.y, visible: !o.initiallyHidden }])); render();
+  }
+  function endTest() { mode = 'design'; live = {}; render(); }
+  function clickButton(o) {
+    for (const a of o.actions) {
+      const st = live[a.target];
+      if (a.type === 'set' && a.variable in runtimeVars) runtimeVars[a.variable] = parse(a.value);
+      if (a.type === 'add' && a.variable in runtimeVars) runtimeVars[a.variable] = (Number(runtimeVars[a.variable]) || 0) + (Number(a.value) || 0);
+      if (a.type === 'random' && a.variable in runtimeVars) runtimeVars[a.variable] = Math.floor(Math.random() * (Math.max(0,Number(a.value)||0)+1));
+      if (a.type === 'time' && a.variable in runtimeVars) runtimeVars[a.variable] = new Date().toLocaleTimeString();
+      if (a.type === 'date' && a.variable in runtimeVars) runtimeVars[a.variable] = new Date().toLocaleDateString();
+      if (a.type === 'position' && st) { st.x=Number(runtimeVars[a.xvar])||0; st.y=Number(runtimeVars[a.yvar])||0; }
+      if (a.type === 'randomPosition' && st) { const target=byId(a.target); st.x=Math.floor(Math.random()*Math.max(1,canvasWidth-(target?.w||0))); st.y=Math.floor(Math.random()*Math.max(1,canvasHeight-(target?.h||0))); }
+      if (a.type === 'show' && st) st.visible = true;
+      if (a.type === 'hide' && st) st.visible = false;
+      if (a.type === 'toggle' && st) st.visible = !st.visible;
+      if (a.type === 'move' && st) { st.x += Number(a.dx) || 0; st.y += Number(a.dy) || 0; }
+    }
+    runAutoRules(runtimeVars);
+    renderStage();
+    renderVariablesTestSummary();
+  }
+  function renderVariablesTestSummary() {
+    const existing = $('testVars'); if (existing) existing.remove();
+    const box = document.createElement('div'); box.id = 'testVars'; box.className = 'hint'; box.style.cssText = 'background:#dfeaff;padding:8px 14px;border-top:1px solid #b8cefa;word-break:break-word;';
+    box.textContent = 'Live variables: ' + JSON.stringify(runtimeVars); $('stage').parentElement.after(box);
+  }
+  function generateHTML() {
+    const css = [
+      'body { margin: 0; font-family: Arial, sans-serif; color: #1f2937; }',
+      '.page {',
+      '  position: relative;',
+      `  width: ${canvasWidth}px;`,
+      `  min-height: ${canvasHeight}px;`,
+      '  margin: 0 auto;',
+      `  background: ${canvasBg};`,
+      '  overflow: hidden;',
+      '}',
+      '.page > * {',
+      '  box-sizing: border-box;',
+      '  position: absolute;',
+      '  display: flex;',
+      '  align-items: center;',
+      '  margin: 0;',
+      '  white-space: pre-wrap;',
+      '}',
+      '.page > button { cursor: pointer; }'
+    ];
+    for (const o of items) {
+      const block = [
+        `  left: ${o.x}px;`,
+        `  top: ${o.y}px;`,
+        `  width: ${o.w}px;`,
+        `  height: ${o.h}px;`
+      ];
+      if (o.bg !== 'transparent') block.push(`  background: ${o.bg};`);
+      if (o.color !== '#1f2937') block.push(`  color: ${o.color};`);
+      if (o.font !== 'Arial') block.push(`  font-family: ${o.font.includes(' ') ? `'${o.font}'` : o.font};`);
+      if (o.fontSize !== 16) block.push(`  font-size: ${o.fontSize}px;`);
+      if (o.weight !== 400) block.push(`  font-weight: ${o.weight};`);
+      if (o.italic) block.push('  font-style: italic;');
+      if (o.align !== 'left') block.push(`  justify-content: ${o.align === 'center' ? 'center' : 'flex-end'};`, `  text-align: ${o.align};`);
+      if (o.border > 0) block.push(`  border: ${o.border}px solid ${o.borderColor};`);
+      else if (o.type === 'button') block.push('  border: 0;');
+      if (o.radius > 0) block.push(`  border-radius: ${o.radius}px;`);
+      if (o.opacity !== 100) block.push(`  opacity: ${o.opacity / 100};`);
+      if (o.shadow) block.push('  box-shadow: 0 8px 20px #14233b3a;');
+      if (o.rotation) block.push(`  transform: rotate(${Number(o.rotation)}deg);`);
+      if (o.blur) block.push(`  filter: blur(${Number(o.blur)}px);`);
+      if (o.type === 'image') block.push(`  object-fit: ${o.fit};`);
+      if (o.type === 'button' && validUrl(o.buttonImage) && o.buttonImageMode === 'background') {
+        block.push(`  background-image: url('${o.buttonImage.replace(/['\\]/g, '')}');`, '  background-size: cover;', '  background-position: center;');
+      }
+      if (o.type === 'button' && o.buttonImageMode === 'icon' && validUrl(o.buttonImage)) block.push('  gap: 7px;');
+      if (o.type === 'button' && o.buttonImageMode === 'free' && validUrl(o.buttonImage)) block.push('  position: absolute;');
+      if (o.initiallyHidden) block.push('  display: none;');
+      css.push('', `#item-${o.id} {`, ...block, '}');
+    }
+    const body = items.map(o => {
+      const id = `item-${o.id}`;
+      if (o.type === 'image') return validUrl(o.src) ? `    <img id="${id}" src="${attr(o.src)}" alt="${attr(o.alt)}">` : `    <div id="${id}">Image placeholder</div>`;
+      const tag = o.type === 'button' ? 'button' : o.type === 'heading' || o.type === 'text' ? o.tag : 'div';
+      const attrs = o.type === 'button' ? ` type="button"` : '';
+      const freeImage = o.type === 'button' && o.buttonImageMode === 'free' && validUrl(o.buttonImage);
+      const content = o.type === 'variable' ? h(o.text) + `<span data-bind="${attr(o.bind)}"></span>` : o.type === 'button' && validUrl(o.buttonImage) && o.buttonImageMode !== 'background' ? freeImage ? `<span style="position:relative;width:100%;height:100%;display:flex;align-items:center;justify-content:center"><span>${h(o.text)}</span><img src="${attr(o.buttonImage)}" alt="" style="position:absolute;left:${o.imageX ?? 8}px;top:${o.imageY ?? 12}px;width:${o.imageW ?? 24}px;height:${o.imageH ?? 24}px;object-fit:contain;pointer-events:none"></span>` : `<img src="${attr(o.buttonImage)}" alt="" style="width:24px;height:24px;object-fit:contain;flex-shrink:0">${h(o.text)}` : h(o.text).replace(/\{([A-Za-z_]\w*)\}/g,(_,name)=>`<span data-bind="${attr(name)}"></span>`);
+      return `    <${tag} id="${id}"${attrs}>${content}</${tag}>`;
+    });
+    const dynamic = autoRules.length > 0 || items.some(o => o.actions.length || o.condition || o.conditions?.length || o.type === 'variable' || /\{[A-Za-z_]\w*\}/.test(o.text));
+    const script = [];
+    if (dynamic) {
+      const conditions = items.flatMap(o => (o.conditions || (o.condition ? [o.condition] : [])).map(c => ({ id: `item-${o.id}`, ...c, target: `item-${c.target}` }))); 
+      const rules = autoRules;
+      const actions = Object.fromEntries(items.filter(o => o.type === 'button' && o.actions.length).map(o => [`item-${o.id}`, o.actions]));
+      const positions = Object.fromEntries(items.map(o => [`item-${o.id}`, { x: o.x, y: o.y }]));
+      const initialVisibility = Object.fromEntries(items.filter(o => o.initiallyHidden).map(o => [`item-${o.id}`, false]));
+      script.push('<script>', `  const variables = ${JSON.stringify(variables, null, 2).replace(/\n/g,'\n  ')};`, `  const conditions = ${JSON.stringify(conditions, null, 2).replace(/\n/g,'\n  ')};`, `  const autoRules = ${JSON.stringify(rules, null, 2).replace(/\n/g,'\n  ')};`, `  const actions = ${JSON.stringify(actions, null, 2).replace(/\n/g,'\n  ')};`, `  const positions = ${JSON.stringify(positions, null, 2).replace(/\n/g,'\n  ')};`, `  const visibility = ${JSON.stringify(initialVisibility)};`, '', '  function compare(a, op, b) {', '    if (op === "==") return String(a) === String(b);', '    if (op === "!=") return String(a) !== String(b);', '    a = Number(a);', '    b = Number(b);', '    if (!Number.isFinite(a) || !Number.isFinite(b)) return false;', '    if (op === ">=") return a >= b;', '    if (op === "<=") return a <= b;', '    return op === ">" ? a > b : a < b;', '  }', '', '  const fired = {};', '  function applyVariableRules() {', '    for (let pass = 0; pass < autoRules.length + 1; pass++) {', '      let changed = false;', '      autoRules.forEach((rule, i) => {', '        const matched = compare(variables[rule.watch], rule.op, rule.value);', '        if (!matched) fired[i] = false;', '        if (!matched || fired[i] || !(rule.target in variables)) return;', '        fired[i] = true;', '        const raw = rule.source === "variable" ? variables[rule.amount] : rule.amount;', '        const value = raw !== "" && !Number.isNaN(Number(raw)) ? Number(raw) : raw;', '        const next = rule.action === "add" ? (Number(variables[rule.target]) || 0) + (Number(value) || 0) : value;', '        if (variables[rule.target] !== next) { variables[rule.target] = next; changed = true; }', '      });', '      if (!changed) break;', '    }', '  }', '', '  function touching(a,b) { const x=document.getElementById(a),y=document.getElementById(b);if(!x||!y)return false;const p=x.getBoundingClientRect(),q=y.getBoundingClientRect();return p.left<q.right&&p.right>q.left&&p.top<q.bottom&&p.bottom>q.top; }', '  function updatePage() {', '    applyVariableRules();', '    document.querySelectorAll("[data-bind]").forEach(el => {', '      el.textContent = variables[el.dataset.bind] ?? "";', '    });', '    conditions.forEach(rule => {', '      const allowed = rule.kind === "touching" ? touching(rule.id,rule.target) : compare(variables[rule.variable], rule.op, rule.value);', '      document.getElementById(rule.id).style.display =', '        allowed && conditions.filter(c=>c.id===rule.id).every(c=>c.kind==="touching"?touching(c.id,c.target):compare(variables[c.variable],c.op,c.value)) && visibility[rule.id] !== false ? "flex" : "none";', '    });', '    Object.keys(visibility).forEach(id => {', '      if (!conditions.some(rule => rule.id === id)) {', '        document.getElementById(id).style.display = visibility[id] ? "flex" : "none";', '      }', '    });', '  }', '', '  Object.entries(actions).forEach(([buttonId, steps]) => {', '    document.getElementById(buttonId).addEventListener("click", () => {', '      steps.forEach(step => {', '        const id = `item-${step.target}`;', '        if (step.type === "set") {', '          const value = String(step.value).trim();', '          variables[step.variable] = value !== "" && !Number.isNaN(Number(value)) ? Number(value) : value;', '        }', '        if (step.type === "add") {', '          variables[step.variable] = (Number(variables[step.variable]) || 0) + (Number(step.value) || 0);', '        }', '        if (step.type === "random") variables[step.variable] = Math.floor(Math.random() * (Math.max(0,Number(step.value)||0)+1));',
+        '        if (step.type === "time") variables[step.variable] = new Date().toLocaleTimeString();',
+        '        if (step.type === "date") variables[step.variable] = new Date().toLocaleDateString();',
+        '        if (step.type === "position" && positions[id]) { positions[id].x=Number(variables[step.xvar])||0; positions[id].y=Number(variables[step.yvar])||0; const target=document.getElementById(id);target.style.left=positions[id].x+"px";target.style.top=positions[id].y+"px"; }',
+        '        if (step.type === "randomPosition" && positions[id]) { const target=document.getElementById(id); positions[id].x=Math.floor(Math.random()*Math.max(1,document.querySelector(".page").clientWidth-target.offsetWidth));positions[id].y=Math.floor(Math.random()*Math.max(1,document.querySelector(".page").clientHeight-target.offsetHeight));target.style.left=positions[id].x+"px";target.style.top=positions[id].y+"px"; }',
+        '        if (step.type === "show") visibility[id] = true;', '        if (step.type === "hide") visibility[id] = false;', '        if (step.type === "toggle") visibility[id] = !(visibility[id] ?? true);', '        if (step.type === "move" && positions[id]) {', '          positions[id].x += Number(step.dx) || 0;', '          positions[id].y += Number(step.dy) || 0;', '          const target = document.getElementById(id);', '          target.style.left = positions[id].x + "px";', '          target.style.top = positions[id].y + "px";', '        }', '      });', '      updatePage();', '    });', '  });', '', '  updatePage();', '<\/script>');
+    }
+    return ['<!doctype html>', '<html lang="en">', '<head>', '  <meta charset="utf-8">', '  <meta name="viewport" content="width=device-width, initial-scale=1">', '  <title>My Website</title>', '  <style>', ...css.map(line => '    ' + line), '  </style>', '</head>', '<body>', '  <main class="page">', ...body, '  </main>', ...(script.length ? ['  ' + script.join('\n  ')] : []), '</body>', '</html>'].join('\n');
+  }
+  function download(filename, content, type) { const blob = new Blob([content], { type }); const url = URL.createObjectURL(blob); const a = document.createElement('a'); a.href = url; a.download = filename; document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(url), 2000); }
+  function code() { return customSource ? $('source').value : generateHTML(); }
+  function saveJSON() { return JSON.stringify({ format:'pixel-studio-1', items, variables, autoRules, nextId, canvasWidth, canvasHeight, canvasBg, gridSize, snap, showGrid, customSource, sourceCode: customSource ? $('source').value : null }, null, 2); }
+  function loadJSON(raw) {
+    const data = JSON.parse(raw);
+    if (data.format !== 'pixel-studio-1' || !Array.isArray(data.items) || typeof data.variables !== 'object' || !data.variables) throw new Error('Not a valid Blocklark project');
+    autoRules = Array.isArray(data.autoRules) ? data.autoRules : [];
+    items = data.items.filter(o => defaults[o.type]).map(o => ({ ...o, actions: Array.isArray(o.actions) ? o.actions : [], condition: o.condition || null }));
+    variables = data.variables; nextId = Math.max(1, ...items.map(o => Number(o.id) + 1), Number(data.nextId) || 1);
+    canvasWidth = clamp(Number(data.canvasWidth) || 820, 300, 1600); canvasHeight = clamp(Number(data.canvasHeight) || 520, 300, 1200); canvasBg = /^#[0-9a-f]{6}$/i.test(data.canvasBg) ? data.canvasBg : '#ffffff';
+    gridSize = clamp(Number(data.gridSize) || 16, 4, 64); snap = Boolean(data.snap); showGrid = Boolean(data.showGrid);
+    $('gridSlider').value = gridSize; $('gridSizeLabel').textContent = gridSize + ' px'; $('snapToggle').checked = snap; $('gridToggle').checked = showGrid;
+    selectedId = null; mode = 'design'; customSource = Boolean(data.customSource && typeof data.sourceCode === 'string'); $('source').readOnly = !customSource; $('editSource').textContent = customSource ? '↶ Visual code' : '✎ Edit code'; $('sourceStatus').textContent = customSource ? 'Manual code mode · download uses your edited code' : 'Clean generated source · no comments'; if (customSource) $('source').value = data.sourceCode; tab = 'style'; render();
+  }
+  root.querySelectorAll('[data-add]').forEach(button => {
+    button.addEventListener('click', () => add(button.dataset.add));
+    button.addEventListener('dragstart', event => event.dataTransfer.setData('text/x-pixel-element', button.dataset.add));
+  });
+  stage.addEventListener('dragover', event => { if (mode === 'design') event.preventDefault(); });
+  stage.addEventListener('drop', event => {
+    event.preventDefault(); if (mode !== 'design') return;
+    const type = event.dataTransfer.getData('text/x-pixel-element'); if (!defaults[type]) return;
+    const r = stage.getBoundingClientRect(); add(type, event.clientX - r.left, event.clientY - r.top);
+  });
+  stage.addEventListener('pointerdown', event => {
+    if (mode !== 'design') return;
+    const el = event.target.closest('.element'); if (!el) { selectedId = null; render(); return; }
+    const o = byId(el.dataset.id); if (!o) return;
+    selectedId = o.id; const isResize = event.target.classList.contains('resize-handle');
+    record(); drag = { id:o.id, x:event.clientX, y:event.clientY, oldX:o.x, oldY:o.y, w:o.w, h:o.h, resize:isResize, image: !isResize && event.target.classList.contains('button-art') && o.buttonImageMode === 'free', imageX:o.imageX ?? 8, imageY:o.imageY ?? 12 };
+    el.setPointerCapture(event.pointerId); renderLayers(); renderInspector();
+    stage.querySelectorAll('.element').forEach(e => e.classList.toggle('selected', Number(e.dataset.id) === selectedId));
+    event.preventDefault();
+  });
+  stage.addEventListener('pointermove', event => {
+    if (!drag || mode !== 'design') return;
+    const o = byId(drag.id); if (!o) return;
+    const dx = event.clientX - drag.x, dy = event.clientY - drag.y;
+    if (drag.image) { o.imageX = Math.round(drag.imageX + dx); o.imageY = Math.round(drag.imageY + dy); }
+    else if (drag.resize) { o.w = clamp(snapValue(drag.w + dx), 24, canvasWidth - o.x); o.h = clamp(snapValue(drag.h + dy), 24, canvasHeight - o.y); }
+    else { o.x = clamp(snapValue(drag.oldX + dx), 0, Math.max(0, canvasWidth - o.w)); o.y = clamp(snapValue(drag.oldY + dy), 0, Math.max(0, canvasHeight - o.h)); }
+    const el = stage.querySelector(`.element[data-id="${o.id}"]`); if (el) paint(el, o);
+    ['x','y','w','h','imageX','imageY'].forEach(k => { const input = root.querySelector(`[data-prop="${k}"]`); if (input) input.value = o[k]; }); updateCode();
+  });
+  stage.addEventListener('pointerup', () => { drag = null; });
+  stage.addEventListener('pointercancel', () => { drag = null; });
+  stage.addEventListener('dblclick', event => { if (mode === 'design' && event.target.closest('.element')) { const f = $('textEditor'); if (f) f.focus(); } });
+  stage.addEventListener('click', event => { if (mode === 'test') { const el = event.target.closest('.element[data-kind="button"]'); if (el) clickButton(byId(el.dataset.id)); } });
+  root.querySelectorAll('[data-tab]').forEach(button => button.addEventListener('click', () => { tab = button.dataset.tab; renderInspector(); }));
+  root.addEventListener('focusin', event => { if (event.target.matches('input,textarea,select')) record(); });
+  $('inspector').addEventListener('change', event => { if (event.target.matches('input,select,textarea')) record(); }, true);
+  $('inspector').addEventListener('input', event => {
+    const input = event.target, o = selected();
+    if (input.dataset.page) {
+      if (input.dataset.page === 'bg') canvasBg = input.value;
+      if (input.dataset.page === 'width') canvasWidth = clamp(Number(input.value) || 820, 300, 1600);
+      if (input.dataset.page === 'height') canvasHeight = clamp(Number(input.value) || 520, 300, 1200);
+      refresh(); return;
+    }
+    if (!o) return;
+    if (input.dataset.prop) {
+      const key = input.dataset.prop;
+      if (key === 'transparent') o.bg = input.checked ? 'transparent' : '#ffffff';
+      else if (key === 'italic' || key === 'shadow' || key === 'initiallyHidden') o[key] = input.checked;
+      else if (['x','y','w','h','fontSize','radius','border','opacity','weight','imageX','imageY','imageW','imageH'].includes(key)) {
+        const n = Number(input.value) || 0;
+        o[key] = key === 'opacity' ? clamp(n,0,100) : key === 'w' || key === 'h' ? clamp(n,24,1600) : key === 'x' || key === 'y' ? Math.max(0,n) : Math.max(0,n);
+      } else o[key] = input.value;
+      const el = stage.querySelector(`.element[data-id="${o.id}"]`); if (el) paint(el, o);
+      updateCode();
+    }
+    if (input.dataset.ruleKey) { const c=(o.conditions||[])[Number(input.dataset.ruleIndex)]; if(c){c[input.dataset.ruleKey]=input.value; if(input.dataset.ruleKey==='kind')renderInspector(); updateCode();} }
+    if (input.dataset.actionKey && o.actions[Number(input.dataset.actionIndex)]) { const a = o.actions[Number(input.dataset.actionIndex)]; a[input.dataset.actionKey] = input.value; updateCode(); }
+  });
+  $('inspector').addEventListener('change', event => {
+    const input = event.target, o = selected(); if (!o) return;
+    if (input.dataset.prop === 'transparent' || input.dataset.prop === 'tag' || input.dataset.prop === 'fit' || input.dataset.prop === 'buttonImageMode') renderInspector();
+
+    if (input.dataset.cond) { renderInspector(); updateCode(); }
+    if (input.dataset.actionKey === 'type') {
+      const a = o.actions[Number(input.dataset.actionIndex)]; if (a) { a.type = input.value; a.variable = Object.keys(variables)[0] || ''; a.target = items[0]?.id ?? 0; a.value = '1'; a.dx = 16; a.dy = 0; a.xvar = Object.keys(variables)[0] || ''; a.yvar = Object.keys(variables)[0] || ''; }
+      renderInspector(); updateCode();
+    }
+  });
+  $('inspector').addEventListener('click', event => {
+    const o = selected(); if (!o) return;
+    if (event.target.id === 'addCondition') { record(); o.conditions ||= (o.condition ? [o.condition] : []); o.condition=null; o.conditions.push({kind:'variable',variable:Object.keys(variables)[0]||'',op:'>=',value:'1',target:items[0]?.id||0});renderInspector();updateCode(); }
+    if(event.target.dataset.ruleRemove!==undefined){record();o.conditions.splice(Number(event.target.dataset.ruleRemove),1);renderInspector();updateCode();}
+    if (event.target.id === 'addAction') { record(); o.actions.push({ type:'add', variable:Object.keys(variables)[0] || '', value:'1', target:items[0]?.id ?? 0, dx:16, dy:0, xvar:Object.keys(variables)[0] || '', yvar:Object.keys(variables)[0] || '' }); renderInspector(); updateCode(); }
+    if (event.target.dataset.deleteAction !== undefined) { record(); o.actions.splice(Number(event.target.dataset.deleteAction), 1); renderInspector(); updateCode(); }
+  });
+  $('layers').addEventListener('click', event => { const row = event.target.closest('[data-layer]'); if (!row || mode === 'test') return; selectedId = Number(row.dataset.layer); renderStage(); renderLayers(); renderInspector(); });
+  function reorder(dir) { record(); const index = items.findIndex(o => o.id === selectedId); const to = index + dir; if (index < 0 || to < 0 || to >= items.length) return; [items[index], items[to]] = [items[to], items[index]]; refresh(); }
+  $('layerUp').addEventListener('click', () => reorder(1)); $('layerDown').addEventListener('click', () => reorder(-1));
+  $('duplicate').addEventListener('click', () => duplicateSelected());
+  $('deleteElement').addEventListener('click', deleteSelected);
+  $('addVar').addEventListener('click', () => { record();
+    const name = val('newVarName').trim();
+    if (!/^[A-Za-z_][A-Za-z0-9_]{0,27}$/.test(name)) { $('varError').textContent = 'Use letters, numbers, underscores; start with a letter.'; return; }
+    if (name === '__proto__' || name === 'constructor' || name === 'prototype' || Object.hasOwn(variables, name)) { $('varError').textContent = 'That name already exists or is reserved.'; return; }
+    variables[name] = parse(val('newVarValue')); $('newVarName').value = ''; $('varError').textContent = ''; renderVariables(); renderInspector(); updateCode();
+  });
+  $('variableList').addEventListener('input', event => { if (event.target.dataset.varValue) { variables[event.target.dataset.varValue] = parse(event.target.value); updateCode(); renderStage(); } });
+  $('variableList').addEventListener('click', event => {
+    const name = event.target.dataset.delVar; if (!name) return;
+    record(); delete variables[name]; items.forEach(o => { if (o.condition?.variable === name) o.condition = null; if(o.conditions)o.conditions=o.conditions.filter(c=>c.kind==='touching'||c.variable!==name); if (o.bind === name) o.bind = Object.keys(variables)[0] || ''; o.actions = o.actions.filter(a => !((a.type === 'set' || a.type === 'add') && a.variable === name)); }); render();
+  });
+  $('snapToggle').addEventListener('change', event => { snap = event.target.checked; });
+  $('gridToggle').addEventListener('change', event => { showGrid = event.target.checked; renderStage(); });
+  $('gridSlider').addEventListener('input', event => { gridSize = Number(event.target.value); $('gridSizeLabel').textContent = gridSize + ' px'; renderStage(); });
+  $('testToggle').addEventListener('click', () => { if (mode === 'design') beginTest(); else { const s = $('testVars'); if (s) s.remove(); endTest(); } });
+  $('newProject').addEventListener('click', () => { record(); items = []; variables = { score:0 }; autoRules = []; selectedId = null; nextId = 1; mode = 'design'; tab = 'style'; customSource = false; $('source').readOnly = true; $('editSource').textContent = '✎ Edit code'; $('sourceStatus').textContent = 'Clean generated source · no comments'; const s = $('testVars'); if (s) s.remove(); render(); });
+  $('saveProject').addEventListener('click', () => download('my-project.json', saveJSON(), 'application/json'));
+  $('loadProject').addEventListener('click', () => $('projectFile').click());
+  $('projectFile').addEventListener('change', async event => { const f = event.target.files?.[0]; if (!f) return; try { loadJSON(await f.text()); } catch (err) { alert(err.message); } event.target.value = ''; });
+  $('downloadHTML').addEventListener('click', () => download('my-website.html', code(), 'text/html'));
+  $('copySource').addEventListener('click', async () => { const source = code(); try { await navigator.clipboard.writeText(source); $('copySource').textContent = '✓ Copied'; setTimeout(() => $('copySource').textContent = 'Copy', 1200); } catch { $('source').focus(); $('source').select(); document.execCommand('copy'); } });
+  $('editSource').addEventListener('click', () => {
+    if (!customSource) { $('source').value = generateHTML(); customSource = true; $('source').readOnly = false; $('editSource').textContent = '↶ Visual code'; $('sourceStatus').textContent = 'Manual code mode · download uses your edited code'; }
+    else { customSource = false; $('source').readOnly = true; $('editSource').textContent = '✎ Edit code'; $('sourceStatus').textContent = 'Clean generated source · no comments'; updateCode(); }
+  });
+  $('previewSource').addEventListener('click', () => { $('previewFrame').hidden = !$('previewFrame').hidden; if (!$('previewFrame').hidden) $('previewFrame').srcdoc = code(); $('previewSource').textContent = $('previewFrame').hidden ? 'Run code' : 'Hide preview'; });
+  $('addAutoRule').addEventListener('click', () => {
+    const keys=Object.keys(variables);
+    if (!keys.length) { alert('Create a variable first in the Variables section.'); return; }
+    record(); autoRules.push({watch:keys[0],op:'>=',value:'10',target:keys[1] || keys[0],action:'set',amount:'2',source:'value'}); render();
+  });
+  $('autoRules').addEventListener('input', e => {
+    const el=e.target, i=Number(el.dataset.auto), field=el.dataset.field;
+    if (!field || !autoRules[i]) return;
+    autoRules[i][field]=field==='source'?(el.checked?'variable':'value'):el.value;
+    updateCode();
+  });
+  $('autoRules').addEventListener('change', e => {
+    const el=e.target, i=Number(el.dataset.auto);
+    if (autoRules[i] && ['action','source'].includes(el.dataset.field)) renderAutoRules();
+  });
+  $('autoRules').addEventListener('click', e => {
+    const n=e.target.dataset.removeAuto;
+    if (n === undefined) return;
+    record(); autoRules.splice(Number(n),1); render();
+  });
+  $('themeToggle').addEventListener('click', () => { document.body.classList.toggle('dark'); const dark=document.body.classList.contains('dark'); $('themeToggle').textContent=dark?'☀ Light':'☾ Dark'; try { localStorage.setItem('pixelstudio-theme',dark?'dark':'light'); } catch {} });
+  try { if(localStorage.getItem('pixelstudio-theme')==='dark') $('themeToggle').click(); } catch {}
+  $('undoBtn').addEventListener('click',undo);
+  $('redoBtn').addEventListener('click',redo);
+  $('centerBtn').addEventListener('click',centerSelected);
+  $('addCenterText').addEventListener('click',()=>{ add('text',Math.round((canvasWidth-defaults.text.w)/2),Math.round((canvasHeight-defaults.text.h)/2)); });
+  $('toggleCode').addEventListener('click',()=>{ const e=$('source'); e.hidden=!e.hidden; $('toggleCode').textContent=e.hidden?'Show code':'Hide code'; });
+  $('editSource').addEventListener('click',()=>{ $('source').hidden=false; $('toggleCode').textContent='Hide code'; });
+  document.addEventListener('keydown',event=>{
+    if(mode!=='design')return;
+    const el=event.target;
+    const editing=el.matches('input,textarea,select,[contenteditable="true"]') || !!el.closest('[contenteditable="true"]');
+    if(editing)return;
+    const key=event.key.toLowerCase(),mod=event.ctrlKey||event.metaKey;
+    if(mod&&key==='z'){event.preventDefault(); event.shiftKey?redo():undo();return;}
+    if(mod&&key==='y'){event.preventDefault();redo();return;}
+    if(mod&&key==='c'){if(selected()){event.preventDefault();copiedElement=structuredClone(selected());}return;}
+    if(mod&&key==='v'){if(copiedElement){event.preventDefault();record();const o=structuredClone(copiedElement);o.id=nextId++;o.x=clamp(o.x+gridSize,0,Math.max(0,canvasWidth-o.w));o.y=clamp(o.y+gridSize,0,Math.max(0,canvasHeight-o.h));items.push(o);selectedId=o.id;copiedElement=structuredClone(o);render();}return;}
+    if(mod&&key==='d'){if(selected()){event.preventDefault();duplicateSelected();}return;}
+    if((key==='backspace'||key==='delete')&&!mod){if(selected()){event.preventDefault();deleteSelected();}}
+  });
+  add('heading', 48, 55); add('text', 48, 145); add('button', 48, 240); selectedId = null; render(); history=[]; future=[];
+})();
+</script>
+</body>
+</html>
