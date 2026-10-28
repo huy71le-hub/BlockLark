@@ -1,0 +1,1284 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Blocklark | Visual website builder</title>
+  <style>
+    * { box-sizing: border-box; }
+    :root { font-family: Inter, ui-sans-serif, system-ui, -apple-system, Segoe UI, sans-serif; color: #172235; background: #edf1f7; }
+    button, input, select, textarea { font: inherit; }
+    button { cursor: pointer; }
+    .app { max-width: 1720px; margin: auto; padding: 14px; }
+    .header, .panel, .source-wrap { background: #fff; border: 1px solid #dce3ee; border-radius: 14px; box-shadow: 0 2px 10px #1f315012; }
+    .header { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; padding: 13px 16px; margin-bottom: 12px; }
+    .logo { display: flex; align-items: center; gap: 10px; font-size: 19px; font-weight: 800; letter-spacing: -0.6px; }
+    .logo-mark { display: grid; place-items: center; background: #2563eb; color: #fff; width: 34px; height: 34px; border-radius: 10px; }
+    .subtitle { font-size: 11px; color: #69768a; font-weight: 500; letter-spacing: 0; }
+    .row { display: flex; align-items: center; gap: 7px; flex-wrap: wrap; }
+    .btn { border-radius: 8px; padding: 8px 11px; border: 1px solid #d9e2ef; background: #fff; color: #263852; font-size: 12px; font-weight: 650; white-space: nowrap; }
+    .btn:hover { background: #f0f5ff; border-color: #91b5f6; }
+    .btn.primary { background: #2563eb; color: #fff; border-color: #2563eb; }
+    .btn.primary:hover { background: #1d4ed8; }
+    .btn.active { background: #e8efff; color: #1d4ed8; border-color: #92b2f8; }
+    .btn.danger { color: #bd3340; }
+    .workspace { display: grid; grid-template-columns: 185px minmax(0, 1fr) 300px; gap: 12px; min-height: 600px; }
+    .panel { overflow: hidden; }
+    .panel-title { padding: 13px 14px; border-bottom: 1px solid #e8edf5; font-weight: 750; font-size: 12px; }
+    .palette { padding: 12px; }
+    .hint { font-size: 11px; color: #66778f; line-height: 1.5; }
+    .block-btn { width: 100%; background: #f8faff; padding: 10px 9px; text-align: left; border: 1px solid #e4eaf4; border-radius: 9px; margin: 0 0 7px; font-size: 12px; font-weight: 640; color: #2a3a53; }
+    .block-btn:hover { background: #eaf1ff; border-color: #a6bff4; }
+    .block-btn span { display: inline-block; width: 23px; color: #3a6fca; }
+    .section { border-top: 1px solid #e8edf5; padding: 13px 12px; }
+    .section h3 { margin: 0 0 10px; font-size: 12px; }
+    .field { min-width: 0; width: 100%; height: 32px; border: 1px solid #d8e1ed; border-radius: 7px; background: #fff; color: #172235; font-size: 12px; padding: 5px 7px; }
+    textarea.field { height: auto; min-height: 56px; resize: vertical; }
+    .field:focus { outline: 2px solid #b8ceff; border-color: #648de9; }
+    label { display: block; font-size: 11px; font-weight: 650; color: #5b6b81; margin: 8px 0 4px; }
+    .mini-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 9px; }
+    .mini-grid.four { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 7px; }
+    .toggle-line { display: flex; align-items: center; gap: 7px; font-size: 12px; margin: 10px 0; }
+    .toggle-line input { accent-color: #2563eb; }
+    input[type="range"] { width: 100%; accent-color: #2563eb; }
+    input[type="color"] { padding: 3px; height: 33px; cursor: pointer; }
+    .stage-panel { min-width: 0; background: #e9eef6; display: flex; flex-direction: column; }
+    .stage-head { flex: 0 0 auto; background: #fff; display: flex; justify-content: space-between; gap: 10px; align-items: center; padding: 11px 13px; border-bottom: 1px solid #dce3ee; }
+    .stage-shell { flex: 1; min-height: 600px; padding: 24px 18px; overflow: auto; }
+    .stage-frame { position: relative; margin: 0 auto; flex: none; }
+    .stage { background: #fff; position: absolute; top: 0; left: 0; margin: 0; box-shadow: 0 6px 25px #30456526; touch-action: none; overflow: hidden; transform-origin: top left; }
+    .stage.grid-visible { box-shadow: 0 6px 25px #30456526, inset 0 0 0 1px #94a3b855; }
+    .grid-overlay, .snap-guides { position:absolute;inset:0;width:100%;height:100%;pointer-events:none;overflow:hidden; }
+    .grid-overlay { z-index:0; }
+    .snap-guides { z-index:999; }
+    .grid-control { padding:7px 8px;background:#f1f5fa;border-radius:9px; }
+    body.dark .grid-control { background:#1d2b40; }
+    .small-note {font-size:10px;color:#64748b;line-height:1.5;}
+    body.dark .small-note {color:#a3b3c8;}
+    .loop-card { border:1px solid #cbd5e1;background:#f8faff;border-radius:10px;margin:10px 0;padding:9px; }
+    body.dark .loop-card { background:#1d2b40;border-color:#42536b; }
+    .loop-step { background:#eaf1ff;border-radius:8px;padding:7px 8px;margin:6px 0; }
+    .compact-rule { padding:0; margin:6px 0; }
+    .compact-rule > summary, .loop-step > summary, .loop-card > summary { cursor:pointer; font-size:11px; padding:8px 10px; font-weight:650; list-style-position:inside; line-height:1.5; }
+    .compact-rule > summary:hover, .loop-step > summary:hover { background:#e8f0ff; }
+    .compact-body { border-top:1px solid #e0e7f1; padding:9px 10px 11px; }
+    .command-input { min-width:0; flex:1; }
+    .command-help { font:11px/1.6 ui-monospace,Consolas,monospace; color:#596983; }
+    .command-help code { font:inherit; color:#1e40af; }
+    .cmd-row { display:flex; gap:6px; align-items:center; margin:8px 0; }
+    .cmd-error { font-size:11px; min-height:0; color:#b42336; margin-top:4px; }
+    body.dark .compact-body { border-color:#40506a; }
+    body.dark .compact-rule > summary:hover, body.dark .loop-step > summary:hover { background:#294062; }
+    body.dark .command-help { color:#a9b8cc; }
+    body.dark .command-help code { color:#9fc0ff; }
+    body.dark .cmd-error { color:#ff93a4; }
+
+    body.dark .loop-step { background:#253959; }
+    .loop-head { display:flex;justify-content:space-between;gap:6px;align-items:center; }
+    .element { position: absolute; display: flex; align-items: center; overflow: visible; line-height: 1.2; cursor: move; user-select: none; touch-action: none; white-space: pre-wrap; }
+    .element > .content { width: 100%; pointer-events: none; max-height: 100%; overflow: hidden; }
+    .element[data-kind="image"] { overflow: hidden; }
+    .element > img.content { height: 100%; max-height: none; border-radius: inherit; display: block; }
+    .element.selected { outline: 2px solid #2563eb; outline-offset: 2px; z-index: 500 !important; }
+    .resize-handle { display: none; position: absolute; width: 15px; height: 15px; bottom: 0; right: 0; border: 2px solid white; border-radius: 3px; background: #2563eb; cursor: nwse-resize; }
+    .element.selected .resize-handle { display: block; }
+    .element.test-mode { cursor: grab; }
+    .element.test-mode.selected { outline: 0; }
+    .element.test-mode .resize-handle { display: none; }
+    .element[data-kind="button"].test-mode { cursor: pointer; }
+    .inspector { padding: 11px 13px 16px; max-height: 745px; overflow: auto; }
+    .panel-tabs { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 5px; padding: 9px; border-bottom: 1px solid #e9edf4; }
+    .tab { border: 0; padding: 8px 3px; border-radius: 8px; font-size: 12px; background: #f4f7fb; color: #50637b; font-weight: 700; }
+    .tab.active { background: #dfeaff; color: #1d4ed8; }
+    .pill { background: #eef4ff; border-radius: 30px; padding: 3px 7px; font-size: 10px; color: #2c60b4; }
+    .rule { border: 1px solid #e0e7f1; background: #fafcff; border-radius: 9px; padding: 10px; margin: 9px 0; }
+    .vars-list { display: flex; flex-direction: column; gap: 7px; margin: 9px 0; }
+    .var-item { border: 1px solid #e4eaf3; border-radius: 8px; padding: 7px; }
+    .layers { display: flex; flex-direction: column; gap: 5px; max-height: 185px; overflow: auto; }
+    .layer { width: 100%; display: flex; justify-content: space-between; text-align: left; gap: 7px; font-size: 11px; padding: 7px; border: 1px solid #e3e9f3; border-radius: 7px; background: #f9fbff; color: #253852; cursor: pointer; }
+    .layer.selected { border-color: #5089ec; background: #e8f0ff; }
+    .source-wrap { margin-top: 12px; overflow: hidden; }
+    .source-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; padding: 11px 14px; border-bottom: 1px solid #e8edf5; }
+    .source-head b { font-size: 13px; }
+    .code-area { width: 100%; height: 230px; resize: vertical; font: 11px/1.55 ui-monospace, SFMono-Regular, Consolas, monospace; color: #cde1ff; background: #142033; border: 0; padding: 15px 17px; outline: none; tab-size: 2; }
+    .code-preview { width: 100%; height: 340px; border: 0; background: white; }
+    .empty { padding: 20px 4px; color: #76869a; font-size: 12px; line-height: 1.6; }
+    .footer { margin-top: 9px; color: #65758d; font-size: 11px; }
+    @media (max-width: 1190px) { .workspace { grid-template-columns: 165px minmax(0, 1fr); } .right { grid-column: 1 / -1; } .inspector { max-height: none; } }
+    @media (max-width: 650px) { .app { padding: 6px; } .workspace { grid-template-columns: 1fr; } .stage-shell { min-height: 420px; padding: 18px; } .palette-items { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; } .palette-items .block-btn { margin: 0; } .right { grid-column: auto; } }
+    html:has(body.dark) { background:#0b1220; color-scheme:dark; }
+    body.dark { background:#0b1220; color:#e5edf9; }
+    body.dark .stage { box-shadow:0 6px 25px #0008; }
+    body.dark .stage.grid-visible { box-shadow:0 6px 25px #0008, inset 0 0 0 1px #47556988; }
+    body.dark .stage[data-default-white="true"] { background-color:#182337 !important; }
+    body.dark .stage-frame { background:transparent; border-color:#334155; }
+    body.dark .stage-shell { border-color:#334155; }
+    body.dark .pill { background:#223450; color:#b8d3ff; }
+    body.dark .layer.selected { background:#244b88; border-color:#6496f1; }
+    body.dark .btn.active { background:#244b88; color:#e5edf9; border-color:#6496f1; }
+    body.dark .resize-handle { border-color:#141e30; }
+    body.dark .code-preview { background:#101827; }
+    body.dark .shortcut-hint { color:#a8b7ce; }
+    body.dark .header, body.dark .panel, body.dark .source-wrap, body.dark .stage-head { background:#141e30; border-color:#334155; color:#e5edf9; }
+    body.dark .stage-panel, body.dark .stage-shell { background:#101827; }
+    body.dark .btn, body.dark .field, body.dark .block-btn, body.dark .layer, body.dark .var-item, body.dark .rule { background:#1d2b40; border-color:#40506a; color:#e5edf9; }
+    body.dark .btn:hover, body.dark .block-btn:hover { background:#283d57; }
+    body.dark .btn.primary { background:#2563eb; color:#fff; }
+    body.dark .tab { background:#203047; color:#d2deed; }
+    body.dark .tab.active { background:#244b88; color:#fff; }
+    body.dark .hint, body.dark .subtitle, body.dark label, body.dark .footer { color:#a8b7ce; }
+    body.dark .panel-title, body.dark .section, body.dark .stage-head, body.dark .source-head, body.dark .panel-tabs { border-color:#334155; }
+    body.dark .empty { color:#afbed1; }
+    body.dark .code-area { background:#080e1b; }
+    .collapsed-content { display:none !important; }
+    .quickbar { display:flex; align-items:center; gap:7px; flex-wrap:wrap; padding:9px 12px; border-bottom:1px solid #e8edf5; }
+    body.dark .quickbar { border-color:#334155; }
+    .quickbar .btn { padding:6px 9px; }
+    .compact-toggle { width:100%; text-align:left; border:0; cursor:pointer; color:inherit; background:transparent; font-weight:700; padding:12px 13px; }
+    .shortcut-hint { font-size:10px; color:#8191a8; padding:0 12px 10px; }
+    /* Dark mode: prevent pale borders at the editor edges. */
+    html:has(body.dark), html:has(body.dark) body { background-color:#0b1220 !important; }
+    body.dark .app, body.dark .workspace { background-color:transparent; }
+    body.dark .header, body.dark .panel, body.dark .stage-panel,
+    body.dark .source-wrap, body.dark .stage-head, body.dark .stage-shell,
+    body.dark .stage-frame, body.dark .source-head, body.dark .quickbar,
+    body.dark .panel-tabs, body.dark .panel-title, body.dark .section {
+      border-color:#334155 !important;
+    }
+    body.dark .stage-frame { outline-color:#334155; box-shadow:none; }
+  </style>
+</head>
+<body>
+<div class="app" id="studio">
+  <header class="header">
+    <div class="logo"><span class="logo-mark">▦</span><div>Blocklark<div class="subtitle">Design visually. Export real HTML.</div></div></div>
+    <div class="row">
+      <button class="btn" id="themeToggle">☾ Dark</button><button class="btn" id="newProject">New</button>
+      <button class="btn" id="saveProject">Save project</button>
+      <button class="btn" id="loadProject">Load project</button>
+      <input id="projectFile" type="file" accept=".json,application/json" hidden>
+      <button class="btn" id="openProgramming">⚡ Program</button><button class="btn" id="openLoops">↻ Loops</button><button class="btn" id="testToggle">▶ Test interactions</button>
+      <button class="btn primary" id="downloadHTML">↓ Export HTML</button>
+    </div>
+  </header>
+  <div class="workspace">
+    <aside class="panel">
+      <div class="panel-title">＋ ADD ELEMENTS</div>
+      <div class="palette">
+        <div class="palette-items">
+          <button class="block-btn" data-add="heading" draggable="true"><span>H</span> Heading</button>
+          <button class="block-btn" data-add="text" draggable="true"><span>¶</span> Text</button>
+          <button class="block-btn" data-add="button" draggable="true"><span>▣</span> Button</button>
+          <button class="block-btn" data-add="box" draggable="true"><span>□</span> Box</button>
+          <button class="block-btn" data-add="image" draggable="true"><span>▧</span> Image URL</button>
+          <button class="block-btn" data-add="variable" draggable="true"><span>⌗</span> Variable text</button>
+        </div>
+        <p class="hint">Click to add, or drag onto the canvas.</p>
+      </div>
+      <div class="section">
+        <h3>⊞ Snap grid</h3>
+        <label class="toggle-line"><input type="checkbox" id="snapToggle" checked> Snap to grid</label>
+        <label class="toggle-line"><input type="checkbox" id="gridToggle" checked> Show grid</label>
+        <div class="row" style="justify-content:space-between"><label for="gridSlider">Grid spacing</label><strong id="gridSizeLabel" style="font-size:12px">20 px</strong></div>
+        <input type="range" id="gridSlider" min="4" max="64" step="2" value="20">
+        <div class="grid-control">
+          <label for="gridStyle">Grid appearance</label><select class="field" id="gridStyle"><option value="lines">Lines + large divisions</option><option value="dots">Dots</option><option value="none">No lines, snap only</option></select>
+          <label class="toggle-line"><input type="checkbox" id="smartGuides" checked> Smart guides (align to other objects)</label>
+          <label class="toggle-line"><input type="checkbox" id="centerGuides" checked> Show center guides</label>
+        </div>
+        <p class="small-note" id="gridInfo">Grid fills the canvas evenly. Changing spacing never changes the page size. Hold Alt while dragging to ignore snapping.</p>
+      </div>
+      <details class="section" id="layersSection"><summary style="cursor:pointer;font-size:12px;font-weight:700">◫ Layers</summary>
+        <div class="layers" id="layers"></div>
+        <div class="row" style="margin-top:8px"><button class="btn" id="layerUp">Move up</button><button class="btn" id="layerDown">Move down</button></div>
+      </details>
+      <details class="section" id="variablesSection"><summary style="cursor:pointer;font-size:12px;font-weight:700">◇ Variables</summary>
+        <div id="variableList" class="vars-list"></div>
+        <input class="field" id="newVarName" placeholder="Variable name, e.g. coins" maxlength="28">
+        <div class="row" style="margin-top:7px"><input class="field" id="newVarValue" placeholder="Start value" value="0" style="flex:1;width:75px"><button class="btn" id="addVar">+ Add</button></div>
+        <p class="hint" id="varError"></p>
+      </details>
+      <details class="section" id="miscSection"><summary style="cursor:pointer;font-size:12px;font-weight:700">✦ Misc tools</summary>
+        <p class="hint"><b>Current time and date:</b> Add a variable, select a button, then go to Actions → When clicked → Set variable to current time/date.</p>
+        <p class="hint"><b>Random numbers:</b> Use Actions → Set variable to a random number.</p>
+        <p class="hint"><b>Show values in text:</b> Write <code>Time: {clock}</code> or <code>Score: {score}</code> in any text box.</p>
+        <p class="hint"><b>Move using variables:</b> Use Actions → Set position from variables.</p>
+      </details>
+      <details class="section" id="loopsSection"><summary style="cursor:pointer;font-size:12px;font-weight:700">↻ Loops & game logic</summary>
+        <p class="hint">Type a command inside a loop, or open a step for more options. Repeats during Test and in exported websites.</p>
+        <button class="btn" id="pongStarter" title="Create an editable mini Pong playground">🏓 Add Pong starter</button>
+        <div id="loopList"></div>
+        <button class="btn primary" id="addLoop">＋ Add repeating loop</button>
+        <p class="small-note">Loop timers run in the preview and exported website. They stop when you leave Test mode.</p>
+      </details>
+      <details class="section" id="autoRulesSection"><summary style="cursor:pointer;font-size:12px;font-weight:700">⚡ Variable events (also in Program)</summary>
+        <p class="hint">When a variable meets a condition, choose what happens. Open Program in the toolbar for the easiest editor.</p>
+        <div id="autoRules"></div>
+        <button class="btn primary" id="addAutoRule">＋ Add a variable rule</button>
+      </details>
+    </aside>
+    <main class="panel stage-panel">
+      <div class="stage-head">
+        <div><strong style="font-size:13px">Canvas</strong><div class="hint" id="canvasDimensions">960 × 540 px</div></div>
+        <div class="row"><label for="canvasZoom" style="margin:0">Zoom</label><select class="field" id="canvasZoom" style="width:95px"><option value="fit">Fit</option><option value="1">100%</option><option value="0.75">75%</option><option value="0.5">50%</option><option value="0.25">25%</option><option value="1.25">125%</option><option value="1.5">150%</option><option value="2">200%</option></select><span class="pill" id="zoomLabel">100%</span><span class="pill" id="modeLabel">DESIGN MODE</span><button class="btn" id="duplicate">Duplicate</button><button class="btn danger" id="deleteElement">Delete</button></div>
+      </div>
+      <div class="quickbar"><button class="btn" id="undoBtn" title="Ctrl+Z">↶ Undo</button><button class="btn" id="redoBtn" title="Ctrl+Y or Ctrl+Shift+Z">↷ Redo</button><button class="btn" id="centerBtn" title="Center the selected element horizontally and vertically">⊕ Center selected</button><button class="btn" id="addCenterText">＋ Center text</button><span class="hint">Ctrl+C / V / D · Del / Backspace</span></div>
+      <div class="stage-shell" id="stageShell"><div class="stage-frame" id="stageFrame"><div class="stage grid-visible" id="stage" style="width:960px;height:540px;--grid-size:20px;"></div></div></div>
+    </main>
+    <aside class="panel right">
+      <div class="panel-title">⚙ INSPECTOR</div>
+      <div class="panel-tabs"><button class="tab active" data-tab="style">Style</button><button class="tab" data-tab="actions">Actions</button><button class="tab" data-tab="rules">When → Do</button></div>
+      <div class="inspector" id="inspector"></div>
+    </aside>
+  </div>
+  <section class="source-wrap">
+    <div class="source-head"><div><b>⌘ HTML + CSS + JavaScript</b><div class="hint" id="sourceStatus">Clean generated source · no comments</div></div><div class="row"><button class="btn" id="toggleCode">Show code</button><button class="btn" id="editSource">✎ Edit code</button><button class="btn" id="copySource">Copy</button><button class="btn" id="previewSource">Run code</button></div></div>
+    <textarea id="source" class="code-area" spellcheck="false" readonly hidden></textarea>
+    <iframe id="previewFrame" class="code-preview" sandbox="allow-scripts" title="Generated website preview" hidden></iframe>
+  </section>
+  <div class="footer">Design mode edits the page. Test mode runs actions and conditions. The code editor lets you customize exported source, but manual code edits don't sync back to visual elements.</div>
+</div>
+<script>
+(() => {
+  const root = document.getElementById('studio');
+  const $ = id => root.querySelector('#' + id);
+  const stage = $('stage'), stageFrame = $('stageFrame'), stageShell = $('stageShell');
+  const fonts = ['Arial', 'Georgia', 'Verdana', 'Tahoma', 'Trebuchet MS', 'Courier New', 'Times New Roman', 'system-ui'];
+  const types = { heading: 'Heading', text: 'Text', button: 'Button', box: 'Box', image: 'Image', variable: 'Variable text' };
+  const defaults = {
+    heading: { w: 450, h: 65, text: 'Build something awesome', fontSize: 34, weight: 700, tag: 'h1', bg: 'transparent', color: '#1e293b' },
+    text: { w: 410, h: 58, text: 'Drag things around and make this page yours.', fontSize: 16, bg: 'transparent', color: '#475569', tag: 'p' },
+    button: { w: 170, h: 48, text: 'Click me', buttonImage: '', buttonImageMode: 'icon', imageX: 8, imageY: 12, imageW: 24, imageH: 24, fontSize: 16, bg: '#2563eb', color: '#ffffff', radius: 10, weight: 700, align: 'center', tag: 'button' },
+    box: { w: 180, h: 105, text: '', bg: '#bfdbfe', radius: 13, tag: 'div' },
+    image: { w: 220, h: 140, src: '', alt: 'My image', bg: '#e0e7ff', radius: 12, tag: 'img' },
+    variable: { w: 200, h: 42, text: 'Score: ', bind: 'score', fontSize: 22, weight: 700, bg: 'transparent', tag: 'div' }
+  };
+  let autoRules = [], gameLoops = [], loopTimers = [], gridStyle = 'lines', smartGuides = true, centerGuides = true, loopNextId = 1;
+  let triggeredRules = {}, triggeredCollisions = {};
+  let items = [], variables = { score: 0 }, selectedId = null, nextId = 1;
+  let snap = true, showGrid = true, gridSize = 20, canvasWidth = 960, canvasHeight = 540, canvasBg = '#ffffff';
+  let mode = 'design', tab = 'style', drag = null, runtimeVars = {}, live = {}, customSource = false, stageZoom = 1;
+  let history = [], future = [], copiedElement = null, restoring = false;
+  const visibleSize = () => { const r = stage.getBoundingClientRect(); return { x: r.width / canvasWidth || 1, y: r.height / canvasHeight || 1 }; };
+  function keyName(key) { return key === ' ' ? 'space' : String(key || '').trim().toLowerCase(); }
+  function snapshot() { return JSON.stringify({ items, variables, autoRules, gameLoops, loopNextId, selectedId, nextId, canvasWidth, canvasHeight, canvasBg }); }
+  function record() { if (restoring || mode !== 'design') return; const now = snapshot(); if (history.at(-1) !== now) { history.push(now); if (history.length > 100) history.shift(); } future = []; }
+  function applySnapshot(state) { restoring = true; const v=JSON.parse(state); Object.assign(window.__pixelHistoryState || {}, {}); items=v.items.map(o => ({...o, collisionRules:o.collisionRules || []})); variables=v.variables; autoRules=v.autoRules || []; gameLoops=v.gameLoops || []; loopNextId=v.loopNextId || 1; selectedId=v.selectedId; nextId=v.nextId; canvasWidth=v.canvasWidth; canvasHeight=v.canvasHeight; canvasBg=v.canvasBg; render(); restoring=false; }
+  function undo() { if (!history.length || mode !== 'design') return; future.push(snapshot()); applySnapshot(history.pop()); }
+  function redo() { if (!future.length || mode !== 'design') return; history.push(snapshot()); applySnapshot(future.pop()); }
+  function duplicateSelected(dx=gridSize,dy=gridSize) { const o=selected(); if (!o || mode !== 'design') return; record(); const copy=structuredClone(o); copy.id=nextId++; copy.x=clamp(o.x+dx,0,Math.max(0,canvasWidth-o.w)); copy.y=clamp(o.y+dy,0,Math.max(0,canvasHeight-o.h)); items.push(copy); selectedId=copy.id; render(); }
+  function deleteSelected() { if (!selected() || mode !== 'design') return; record(); items=items.filter(o=>o.id!==selectedId); selectedId=null; render(); }
+  function fitToGrid(n) { return n; }
+  function centerSelected() { const o=selected(); if(!o || mode!=='design')return; record(); o.x=snapValue((canvasWidth-o.w)/2); o.y=snapAxis((canvasHeight-o.h)/2,'y'); render(); }
+
+  const h = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' }[c]));
+  const attr = h;
+  const parse = s => /^-?(?:\d+\.?\d*|\.\d+)$/.test(String(s).trim()) ? Number(s) : String(s);
+  const val = id => $(id).value;
+  const selected = () => items.find(o => o.id === selectedId);
+  const byId = id => items.find(o => o.id === Number(id));
+  const gridUnits = () => ({ x: canvasWidth / Math.max(1,Math.round(canvasWidth/gridSize)), y:canvasHeight / Math.max(1,Math.round(canvasHeight/gridSize)) });
+  const snapAxis = (n,axis='x') => snap ? Math.round(n / gridUnits()[axis]) * gridUnits()[axis] : Math.round(n);
+  const snapValue = n => snapAxis(n);
+  const cleanCoord = n => Math.round(n * 100)/100;
+  const clamp = (n, low, high) => Math.max(low, Math.min(high, n));
+  const validUrl = url => /^(https?:\/\/|data:image\/|\/|\.\/|\.\.\/)/i.test(url || '');
+  const options = (arr, current) => arr.map(([value, label]) => `<option value="${attr(value)}" ${String(value) === String(current) ? 'selected' : ''}>${h(label)}</option>`).join('');
+  const fontOptions = current => options(fonts.map(v => [v, v]), current);
+  const targetOptions = current => options(items.map(o => [o.id, `${types[o.type]} #${o.id} · ${o.text.slice(0, 16) || o.alt || ''}`]), current);
+  const variableOptions = current => options(Object.keys(variables).map(k => [k, k]), current);
+  function add(type, x, y) {
+    if (!defaults[type] || mode !== 'design') return;
+    const d = defaults[type], offset = items.length * 18;
+    const o = { id: nextId++, type, x: snapValue(clamp(x ?? 42 + offset, 0, canvasWidth - d.w)), y: snapAxis(clamp(y ?? 42 + offset, 0, canvasHeight - d.h),'y'), w: d.w, h: d.h, text: '', src: '', alt: '', font: 'Arial', fontSize: 16, weight: 400, italic: false, align: 'left', bg: '#ffffff', color: '#1f2937', radius: 0, border: 0, borderColor: '#94a3b8', opacity: 100, fit: 'cover', shadow: false, rotation: 0, blur: 0, buttonImage: '', buttonImageMode: 'icon', imageX: 8, imageY: 12, imageW: 24, imageH: 24, initiallyHidden: false, tag: 'div', bind: '', condition: null, actions: [], collisionRules: [], ...d };
+    record(); items.push(o); selectedId = o.id; tab = 'style'; render();
+  }
+  function currentPosition(o) { return mode === 'test' && live[o.id] ? live[o.id] : o; }
+  function valueOf(o) { const state = mode === 'test' ? runtimeVars : variables; const text = mode === 'test' ? (live[o.id]?.text ?? o.text) : o.text; return o.type === 'variable' ? text + (state[o.bind] ?? '') : String(text).replace(/\{([A-Za-z_]\w*)\}/g, (_,name) => state[name] ?? ''); }
+  function passes(o) {
+    if (mode !== 'test') return true;
+    const st = live[o.id]; if (st && !st.visible) return false;
+    const rules = o.conditions || (o.condition ? [o.condition] : []);
+    return rules.every(c => {
+      if (c.kind === 'touching') {
+        const other = byId(c.target); if (!other) return false;
+        return overlaps(o, other);
+      }
+      return c.variable in runtimeVars && compareValues(runtimeVars[c.variable],c.op,parse(c.value));
+    });
+  }
+  function paint(el, o) {
+    const pos = currentPosition(o);
+    Object.assign(el.style, { left: pos.x + 'px', top: pos.y + 'px', width: (pos.w ?? o.w) + 'px', height: (pos.h ?? o.h) + 'px', backgroundColor: pos.bg ?? o.bg, color: o.color, borderRadius: o.radius + 'px', border: `${o.border}px solid ${o.borderColor}`, opacity: String((pos.opacity ?? o.opacity) / 100), fontFamily: o.font, fontSize: o.fontSize + 'px', fontWeight: String(o.weight), fontStyle: o.italic ? 'italic' : 'normal', textAlign: o.align, justifyContent: o.align === 'center' ? 'center' : o.align === 'right' ? 'flex-end' : 'flex-start', boxShadow: o.shadow ? '0 8px 20px #14233b3a' : 'none', transform: `rotate(${Number(o.rotation)||0}deg)`, filter: `blur(${Number(o.blur)||0}px)`, display: passes(o) ? 'flex' : 'none' });
+    el.classList.toggle('selected', mode === 'design' && o.id === selectedId);
+    el.classList.toggle('test-mode', mode === 'test');
+    const content = el.querySelector('.content');
+    if (o.type === 'image') {
+      if (validUrl(o.src)) {
+        if (content.tagName !== 'IMG') { const img = document.createElement('img'); img.className = 'content'; content.replaceWith(img); }
+        const img = el.querySelector('img.content'); if (img.src !== o.src) img.src = o.src; img.alt = o.alt; img.style.objectFit = o.fit;
+      } else {
+        if (content.tagName === 'IMG') { const div = document.createElement('div'); div.className = 'content'; content.replaceWith(div); }
+        el.querySelector('.content').textContent = '▧  Paste an image URL';
+      }
+    } else if (o.type === 'button') {
+      content.textContent = '';
+      content.style.display = 'flex';
+      content.style.alignItems = 'center';
+      content.style.justifyContent = 'center';
+      content.style.gap = '7px';
+      content.style.height = '100%';
+      content.style.position = 'relative';
+      content.style.width = '100%';
+      if (validUrl(o.buttonImage) && o.buttonImageMode === 'background') {
+        el.style.backgroundImage = `url("${o.buttonImage.replace(/["\\]/g, '')}")`;
+        el.style.backgroundSize = 'cover';
+        el.style.backgroundPosition = 'center';
+      } else {
+        el.style.backgroundImage = 'none';
+        if (validUrl(o.buttonImage)) {
+          const img = document.createElement('img'); img.src = o.buttonImage; img.alt = '';
+          img.className = 'button-art';
+          img.style.cssText = o.buttonImageMode === 'free' ? `position:absolute;left:${o.imageX ?? 8}px;top:${o.imageY ?? 12}px;width:${o.imageW ?? 24}px;height:${o.imageH ?? 24}px;object-fit:contain;pointer-events:auto;cursor:grab;z-index:2` : 'width:24px;height:24px;object-fit:contain;flex-shrink:0;pointer-events:none';
+          content.appendChild(img);
+        }
+      }
+      const label = document.createElement('span'); label.textContent = valueOf(o); content.appendChild(label);
+    } else content.textContent = valueOf(o);
+  }
+  function updateStageZoom() {
+    const choice = $('canvasZoom').value;
+    const style = getComputedStyle(stageShell);
+    const availableW = Math.max(100, stageShell.clientWidth - parseFloat(style.paddingLeft) - parseFloat(style.paddingRight) - 4);
+    const availableH = Math.max(100, stageShell.clientHeight - parseFloat(style.paddingTop) - parseFloat(style.paddingBottom) - 4);
+    const fit = Math.min(1, availableW / canvasWidth, availableH / canvasHeight);
+    stageZoom = choice === 'fit' ? Math.max(0.1, fit) : Number(choice) || 1;
+    stage.style.zoom = '';
+    stage.style.transform = `scale(${stageZoom})`;
+    stageFrame.style.width = (canvasWidth * stageZoom) + 'px';
+    stageFrame.style.height = (canvasHeight * stageZoom) + 'px';
+    $('zoomLabel').textContent = Math.round(stageZoom * 100) + '%';
+  }
+  function gridMarkup() {
+    if (!showGrid || gridStyle === 'none' || mode !== 'design') return '';
+    const cols=Math.max(1,Math.round(canvasWidth/gridSize)), rows=Math.max(1,Math.round(canvasHeight/gridSize));
+    const x=canvasWidth/cols,y=canvasHeight/rows, major='#64748b', minor='#94a3b8';
+    let bits=[];
+    if(gridStyle==='dots') {
+      for(let i=1;i<cols;i++)for(let j=1;j<rows;j++)bits.push(`<circle cx="${cleanCoord(i*x)}" cy="${cleanCoord(j*y)}" r="${i%5===0&&j%5===0 ? 1.65:1.1}" fill="${minor}" opacity="${i%5===0&&j%5===0?'.75':'.53'}"/>`);
+    } else {
+      for(let i=1;i<cols;i++)bits.push(`<line x1="${cleanCoord(i*x)}" y1="0" x2="${cleanCoord(i*x)}" y2="${canvasHeight}" stroke="${i%5===0?major:minor}" stroke-width="${i%5===0?1.1:.7}" opacity="${i%5===0?'.35':'.26'}"/>`);
+      for(let i=1;i<rows;i++)bits.push(`<line x1="0" y1="${cleanCoord(i*y)}" x2="${canvasWidth}" y2="${cleanCoord(i*y)}" stroke="${i%5===0?major:minor}" stroke-width="${i%5===0?1.1:.7}" opacity="${i%5===0?'.35':'.26'}"/>`);
+    }
+    return `<svg class="grid-overlay" viewBox="0 0 ${canvasWidth} ${canvasHeight}" preserveAspectRatio="none" aria-hidden="true">${bits.join('')}</svg>`;
+  }
+  function drawGuides(guides=[]) {
+    let svg=stage.querySelector('.snap-guides');if(!svg)return;
+    svg.innerHTML=guides.map(g=>g.axis==='x' ? `<line x1="${g.v}" y1="0" x2="${g.v}" y2="${canvasHeight}" stroke="#ec4899" stroke-width="1.4" stroke-dasharray="5 3"/>` : `<line x1="0" y1="${g.v}" x2="${canvasWidth}" y2="${g.v}" stroke="#ec4899" stroke-width="1.4" stroke-dasharray="5 3"/>`).join('');
+  }
+  function snapObjectPosition(o,rawX,rawY,alt=false) {
+    let x=alt?Math.round(rawX):snapAxis(rawX,'x'),y=alt?Math.round(rawY):snapAxis(rawY,'y'),guides=[];
+    if(!alt && smartGuides){
+      const threshold=7/Math.max(.1,stageZoom), xs=[canvasWidth/2],ys=[canvasHeight/2];
+      for(const other of items){if(other.id===o.id)continue;xs.push(other.x,other.x+other.w/2,other.x+other.w);ys.push(other.y,other.y+other.h/2,other.y+other.h);}
+      let bestX=threshold,bestY=threshold;
+      for(const line of xs)for(const anchor of [0,o.w/2,o.w]){const diff=Math.abs(rawX+anchor-line);if(diff<bestX){bestX=diff;x=line-anchor;guides=guides.filter(g=>g.axis!=='x');guides.push({axis:'x',v:line});}}
+      for(const line of ys)for(const anchor of [0,o.h/2,o.h]){const diff=Math.abs(rawY+anchor-line);if(diff<bestY){bestY=diff;y=line-anchor;guides=guides.filter(g=>g.axis!=='y');guides.push({axis:'y',v:line});}}
+    }
+    if(!alt && centerGuides){
+      if(Math.abs(x+o.w/2-canvasWidth/2)<2)guides.push({axis:'x',v:canvasWidth/2});
+      if(Math.abs(y+o.h/2-canvasHeight/2)<2)guides.push({axis:'y',v:canvasHeight/2});
+    }
+    return {x:cleanCoord(clamp(x,0,Math.max(0,canvasWidth-o.w))),y:cleanCoord(clamp(y,0,Math.max(0,canvasHeight-o.h))),guides};
+  }
+  function updateGridInfo() {
+    const units=gridUnits();
+    $('gridSizeLabel').textContent=gridSize+' px';
+    $('gridInfo').textContent=`${Math.round(canvasWidth/units.x)} columns × ${Math.round(canvasHeight/units.y)} rows. Cell ${cleanCoord(units.x)} × ${cleanCoord(units.y)} px. No clipped cells. Hold Alt to move freely.`;
+  }
+  function renderStage() {
+    stage.innerHTML = gridMarkup() + `<svg class="snap-guides" viewBox="0 0 ${canvasWidth} ${canvasHeight}" aria-hidden="true"></svg>`; stage.style.width = canvasWidth + 'px'; stage.style.height = canvasHeight + 'px'; stage.style.backgroundColor = canvasBg; stage.dataset.defaultWhite = String(canvasBg.toLowerCase() === '#ffffff'); stage.classList.toggle('grid-visible', showGrid && mode === 'design');
+    updateGridInfo();
+    items.forEach((o, index) => {
+      const el = document.createElement('div'); el.className = 'element'; el.dataset.id = o.id; el.dataset.kind = o.type; el.style.zIndex = String(index + 1);
+      const c = document.createElement('div'); c.className = 'content'; const handle = document.createElement('div'); handle.className = 'resize-handle'; el.append(c, handle); stage.appendChild(el); paint(el, o);
+    });
+    $('modeLabel').textContent = mode === 'design' ? 'DESIGN MODE' : 'TEST MODE';
+    $('testToggle').textContent = mode === 'design' ? '▶ Test interactions' : '■ Back to design';
+    $('testToggle').classList.toggle('active', mode === 'test');
+    $('canvasDimensions').textContent = `${canvasWidth} × ${canvasHeight} px · ${Math.round(canvasWidth/canvasHeight*100)/100}:1`;
+    updateStageZoom();
+  }
+  function renderLayers() {
+    $('layers').innerHTML = [...items].reverse().map(o => `<button type="button" class="layer ${o.id === selectedId ? 'selected' : ''}" data-layer="${o.id}"><span>${h(types[o.type])} #${o.id}</span><span> ${h((o.text || o.alt || '').slice(0, 10))}</span></button>`).join('');
+  }
+  function renderVariables() {
+    $('variableList').innerHTML = Object.entries(variables).map(([k, v]) => `<div class="var-item"><div class="row" style="justify-content:space-between"><strong style="font-size:11px">${h(k)}</strong><button class="btn danger" style="padding:3px 6px" data-del-var="${attr(k)}">×</button></div><input class="field" style="margin-top:5px" data-var-value="${attr(k)}" value="${attr(v)}" aria-label="Initial value for ${attr(k)}"></div>`).join('');
+  }
+  function p(name, value, kind='text', extra='') { return `<label>${name}</label><input class="field" type="${kind}" data-prop="${value}" ${extra}>`; }
+  function quickSummary(a) {
+    const obj = id => `#${id ?? '?'}`;
+    if (a.type === 'math') return `${a.operation || 'abs'} ${a.variable}${a.value ? ' ' + a.value : ''}`;
+    if (a.type === 'move') return `move ${obj(a.target)} ${a.dx || 0} ${a.dy || 0}`;
+    if (a.type === 'moveWithVars') return `speed ${obj(a.target)} ${a.xvar || 'vx'} ${a.yvar || 'vy'}`;
+    if (a.type === 'bounceEdges') return `bounce ${obj(a.target)} ${a.xvar || 'vx'} ${a.yvar || 'vy'}`;
+    if (['show','hide','toggle','randomPosition'].includes(a.type)) return `${a.type} ${obj(a.target)}`;
+    if (a.type === 'text') return `text ${obj(a.target)} ${a.value || ''}`;
+    if (a.type === 'background') return `color ${obj(a.target)} ${a.value || ''}`;
+    if (a.type === 'opacity') return `opacity ${obj(a.target)} ${a.value || ''}`;
+    if (a.type === 'position') return `setpos ${obj(a.target)} ${a.xvar || ''} ${a.yvar || ''}`;
+    if (a.type === 'copyVar') return `copy ${a.variable || ''} ${a.fromVar || ''}`;
+    return `${a.type} ${a.variable || ''} ${a.value || ''}`.trim();
+  }
+  function parseQuickCommand(raw) {
+    let source=String(raw||'').trim();
+    if(!source)throw Error('Type a command first.');
+    const a={...newStep('add'),type:'add',target:selectedId??items[0]?.id??0,variable:Object.keys(variables)[0]||'score',fromVar:Object.keys(variables)[0]||'score',value:'1',onlyIf:false};
+    const condition=source.match(/^if\s+([A-Za-z_]\w*)\s*(>=|<=|==|!=|>|<)\s*([^:]+?)\s*:\s*(.+)$/i);
+    if(condition){
+      if(!Object.hasOwn(variables,condition[1]))throw Error('Create the condition variable in Variables first.');
+      Object.assign(a,{onlyIf:true,whenVar:condition[1],whenOp:condition[2],whenValue:condition[3].trim()});
+      source=condition[4].trim();
+    }
+    const m=source.match(/^(\S+)(?:\s+([\s\S]*))?$/);
+    const cmd=m[1].toLowerCase(),rest=(m[2]||'').trim();
+    const words=rest.split(/\s+/).filter(Boolean);
+    const needVar = name => { if(!Object.hasOwn(variables,name))throw Error(`Variable "${name||''}" doesn't exist. Add it under Variables.`);return name; };
+    const needObj = name => {const id=Number(String(name||'').replace(/^#/,''));if(!byId(id))throw Error(`Object ${name||''} not found. Select an object to see its # number.`);return id;};
+    const numeric = n => { if(!/^-?(?:\d+(?:\.\d*)?|\.\d+)$/.test(String(n||'')))throw Error('Use a number like 2, -4 or 0.5.'); return n; };
+    const requireCount = n => {if(words.length<n)throw Error(`"${cmd}" needs ${n} values. Click Examples below.`);};
+    if(['add','set','multiply','random'].includes(cmd)){
+      requireCount(2); a.type=cmd;a.variable=needVar(words[0]);a.value=rest.slice(words[0].length).trim();
+      if(cmd!=='set')numeric(a.value);
+    } else if(cmd==='copy'){
+      requireCount(2);a.type='copyVar';a.variable=needVar(words[0]);a.fromVar=needVar(words[1]);
+    } else if(['abs','round','floor','ceil','sqrt','negate','mod','clamp'].includes(cmd)){
+      requireCount(1);a.type='math';a.operation=cmd;a.variable=needVar(words[0]);a.value=words[1]||'1';a.value2=words[2]||'100';
+    } else if(['show','hide','toggle','randompos'].includes(cmd)){
+      requireCount(1);a.type=cmd==='randompos'?'randomPosition':cmd;a.target=needObj(words[0]);
+    } else if(cmd==='move'){
+      requireCount(3);a.type='move';a.target=needObj(words[0]);a.dx=numeric(words[1]);a.dy=numeric(words[2]);
+    } else if(['speed','bounce','setpos'].includes(cmd)){
+      requireCount(3);a.type=cmd==='speed'?'moveWithVars':cmd==='bounce'?'bounceEdges':'position';a.target=needObj(words[0]);a.xvar=needVar(words[1]);a.yvar=needVar(words[2]);
+    } else if(['text','color','opacity'].includes(cmd)){
+      requireCount(2);a.type=cmd==='color'?'background':cmd;a.target=needObj(words[0]);a.value=rest.slice(words[0].length).trim();
+      if(cmd==='color'&&!/^#[0-9a-f]{6}$/i.test(a.value))throw Error('Use a color like #2563eb.');
+      if(cmd==='opacity')numeric(a.value);
+    } else if(['time','date'].includes(cmd)){
+      requireCount(1);a.type=cmd;a.variable=needVar(words[0]);
+    } else {
+      throw Error(`Unknown command "${cmd}". Try add, set, move, show or abs.`);
+    }
+    return a;
+  }
+  const quickExamples = `<details style="margin-top:8px"><summary class="hint" style="cursor:pointer">Examples & syntax</summary><div class="command-help" style="padding-top:7px"><code>add coins 1</code> · increase coins<br><code>set coins 10</code> · assign a value<br><code>move #3 5 0</code> · move object 3<br><code>show #3</code> / <code>hide #3</code><br><code>abs coins</code> · absolute value<br><code>speed #3 vx vy</code> · move using variables<br><code>bounce #3 vx vy</code> · reverse at edges<br><code>if coins >= 10: show #3</code></div></details>`;
+  function renderInspector() {
+    root.querySelectorAll('.tab').forEach(n => n.classList.toggle('active', n.dataset.tab === tab));
+    const panel = $('inspector'), o = selected();
+    if (tab === 'style' && !o) {
+      panel.innerHTML = `<h3 style="font-size:13px">Page settings</h3><label>Page background</label><input class="field" type="color" data-page="bg" value="${canvasBg}"><div class="mini-grid"><div><label>Width (px)</label><input class="field" type="number" data-page="width" min="300" max="1920" value="${canvasWidth}"></div><div><label>Height (px)</label><input class="field" type="number" data-page="height" min="300" max="1200" value="${canvasHeight}"></div></div><label>Desktop canvas size</label><select class="field" data-page="preset"><option value="">Choose a size...</option><option value="960x540">Desktop 16:9 · 960 × 540</option><option value="1280x720">HD · 1280 × 720</option><option value="1920x1080">Full HD · 1920 × 1080</option></select><p class="hint">The page keeps its exact size. Grid columns and rows are evenly spaced; on unusual page sizes, cells may be slightly rectangular.</p><div class="empty">Click any item on the canvas to customize it. Double-click a text element to jump to its text field.</div>`;
+      return;
+    }
+    if (!o && tab !== 'rules') { panel.innerHTML = `<div class="empty">Select an element to edit ${tab === 'actions' ? 'its click actions' : 'its style'}.</div>`; return; }
+    if (tab === 'style') {
+      panel.innerHTML = `<div class="row" style="justify-content:space-between"><strong style="font-size:13px">${types[o.type]} #${o.id}</strong><span class="pill">${o.type.toUpperCase()}</span></div>
+        ${o.type !== 'image' ? `<label>${o.type === 'variable' ? 'Text before value' : 'Text content'}</label><textarea class="field" data-prop="text" id="textEditor">${h(o.text)}</textarea>` : `<label>Image URL</label><input class="field" data-prop="src" value="${attr(o.src)}" placeholder="https://example.com/image.jpg"><label>Alt text</label><input class="field" data-prop="alt" value="${attr(o.alt)}"><label>Image fit</label><select class="field" data-prop="fit">${options([['cover','Cover'],['contain','Contain'],['fill','Stretch']], o.fit)}</select>`}
+        ${o.type === 'button' ? `<label>Button image URL (optional)</label><input class="field" data-prop="buttonImage" value="${attr(o.buttonImage || '')}" placeholder="https://example.com/icon.png"><label>How should the image appear?</label><select class="field" data-prop="buttonImageMode">${options([['icon','Small image beside text'],['free','Place image anywhere (drag it)'],['background','Fill the whole button behind text']], o.buttonImageMode || 'icon')}</select>${o.buttonImageMode === 'free' ? `<p class="hint">Drag the image inside the button to place it anywhere, including over the words. Resize it below.</p><div class="mini-grid four"><div><label>Image X</label><input class="field" type="number" data-prop="imageX" value="${o.imageX ?? 8}"></div><div><label>Image Y</label><input class="field" type="number" data-prop="imageY" value="${o.imageY ?? 12}"></div><div><label>Image width</label><input class="field" type="number" data-prop="imageW" value="${o.imageW ?? 24}"></div><div><label>Image height</label><input class="field" type="number" data-prop="imageH" value="${o.imageH ?? 24}"></div></div>` : ''}<p class="hint">The button remains clickable. Leave the URL blank for a text-only button.</p>` : ''}
+        ${o.type === 'variable' ? `<label>Read variable</label><select class="field" data-prop="bind">${variableOptions(o.bind)}</select>` : ''}
+        ${o.type === 'heading' || o.type === 'text' ? `<label>HTML text type</label><select class="field" data-prop="tag">${options([['h1','H1 heading'],['h2','H2 heading'],['h3','H3 heading'],['p','Paragraph'],['span','Span'],['strong','Bold text']],o.tag)}</select>` : ''}
+        <div class="mini-grid four"><div><label>X</label><input class="field" type="number" data-prop="x" value="${o.x}"></div><div><label>Y</label><input class="field" type="number" data-prop="y" value="${o.y}"></div><div><label>W</label><input class="field" type="number" data-prop="w" value="${o.w}"></div><div><label>H</label><input class="field" type="number" data-prop="h" value="${o.h}"></div></div>
+        <div class="mini-grid"><div><label>Fill color</label><input class="field" type="color" data-prop="bg" value="${o.bg === 'transparent' ? '#ffffff' : o.bg}"></div><div><label>Text color</label><input class="field" type="color" data-prop="color" value="${o.color}"></div></div>
+        <label class="toggle-line"><input type="checkbox" data-prop="transparent" ${o.bg === 'transparent' ? 'checked' : ''}> Transparent background</label>
+        <label>Font family</label><select class="field" data-prop="font">${fontOptions(o.font)}</select>
+        <div class="mini-grid"><div><label>Font size (px)</label><input class="field" type="number" data-prop="fontSize" min="8" max="120" value="${o.fontSize}"></div><div><label>Font weight</label><select class="field" data-prop="weight">${options([[400,'Regular'],[500,'Medium'],[700,'Bold'],[900,'Extra bold']],o.weight)}</select></div></div>
+        <div class="mini-grid"><div><label>Text alignment</label><select class="field" data-prop="align">${options([['left','Left'],['center','Center'],['right','Right']],o.align)}</select></div><div><label>Rounded corners (px)</label><input class="field" type="number" data-prop="radius" min="0" value="${o.radius}"></div></div>
+        <div class="mini-grid"><div><label>Border (px)</label><input class="field" type="number" data-prop="border" min="0" max="30" value="${o.border}"></div><div><label>Border color</label><input class="field" type="color" data-prop="borderColor" value="${o.borderColor}"></div></div>
+        <label>Opacity · ${o.opacity}%</label><input type="range" data-prop="opacity" min="0" max="100" value="${o.opacity}">
+        <div class="mini-grid"><div><label>Rotate (degrees)</label><input class="field" type="number" data-prop="rotation" value="${o.rotation||0}"></div><div><label>Blur (pixels)</label><input class="field" type="number" min="0" max="30" data-prop="blur" value="${o.blur||0}"></div></div>
+        <label class="toggle-line"><input type="checkbox" data-prop="italic" ${o.italic ? 'checked' : ''}> Italic</label>
+        <label class="toggle-line"><input type="checkbox" data-prop="shadow" ${o.shadow ? 'checked' : ''}> Drop shadow</label>
+        <label class="toggle-line"><input type="checkbox" data-prop="initiallyHidden" ${o.initiallyHidden ? 'checked' : ''}> Start hidden (test/export)</label>`;
+      return;
+    }
+    if (tab === 'rules') {
+      const rules = o ? (o.conditions || (o.condition ? [o.condition] : [])) : [];
+      const hasVars = Object.keys(variables).length > 0;
+      panel.innerHTML = `<strong style="font-size:14px">⚡ WHEN something happens → DO something</strong>
+      <p class="hint">These are actions that change variables or objects. Press <b>Test interactions</b> to run them.</p>
+      <div class="rule"><b style="font-size:12px">1 · WHEN a variable meets a condition</b>
+      <p class="hint">Example: WHEN score equals 1 → DO move Box right 20.</p>
+      <div id="inspectorAutoRules">${autoRulesMarkup()}</div>
+      <button class="btn primary" id="addAutoRuleInspector" ${!hasVars?'disabled':''}>＋ Add variable event</button>
+      ${!hasVars?'<p class="hint">Create a variable in the Variables section first.</p>':''}</div>
+      <div class="rule"><b style="font-size:12px">2 · WHEN two objects touch</b>
+      <p class="hint">Select an object on the canvas. Then choose which other object it touches, and what happens.</p>
+      ${o ? `<strong style="font-size:12px">${types[o.type]} #${o.id}</strong>
+      ${(o.collisionRules || []).map((c,i)=>`<div class="rule">
+        <div class="row" style="justify-content:space-between"><strong style="font-size:12px">Touch event ${i+1}</strong><button class="btn danger" data-remove-collision="${i}">Remove</button></div>
+        <label>When touching</label><select class="field" data-collision-index="${i}" data-collision-key="target">${options(items.filter(t=>t.id!==o.id).map(t=>[t.id, `${types[t.type]} #${t.id}`]),c.target)}</select>
+        <label>Do this</label><select class="field" data-collision-index="${i}" data-collision-key="type">${options([['add','Add to a variable'],['set','Set a variable'],['multiply','Multiply a variable'],['show','Show an element'],['hide','Hide an element'],['toggle','Show / hide an element'],['move','Move an element'],['randomPosition','Move an element randomly']],c.type)}</select>
+        ${['add','set','multiply'].includes(c.type) ? `<label>Which variable?</label><select class="field" data-collision-index="${i}" data-collision-key="variable">${variableOptions(c.variable)}</select><label>${c.type==='add'?'Amount to add':c.type==='multiply'?'Multiply by':'Value to set'}</label><input class="field" data-collision-index="${i}" data-collision-key="value" value="${attr(c.value)}">` : ''}
+        ${['show','hide','toggle','move','randomPosition'].includes(c.type) ? `<label>Which element?</label><select class="field" data-collision-index="${i}" data-collision-key="actionTarget">${targetOptions(c.actionTarget)}</select>` : ''}
+        ${c.type==='move' ? `<div class="mini-grid"><div><label>Move X by</label><input class="field" type="number" data-collision-index="${i}" data-collision-key="dx" value="${c.dx||0}"></div><div><label>Move Y by</label><input class="field" type="number" data-collision-index="${i}" data-collision-key="dy" value="${c.dy||0}"></div></div>` : ''}
+      </div>`).join('')}
+<button class="btn primary" id="addCollision" ${items.length<2?'disabled':''}>＋ Add touch event</button>` : `<p class="hint">Select an element to create touch events.</p>`}
+      </div>
+      <div class="rule"><b style="font-size:12px">3 · REPEAT actions (loops)</b>
+      <p class="hint">Make objects move repeatedly, run math, bounce, or create simple games.</p>
+      <button class="btn" id="jumpToLoops">↻ Open repeating loops</button></div>
+      ${o ? `<details class="rule" id="visibilityRules"><summary style="cursor:pointer;font-size:12px;font-weight:700">Show/hide conditions (visibility only)</summary><p class="hint">These only control whether this element appears. They do not run actions.</p>
+      ${rules.map((c,i)=>`<div class="rule"><div class="row" style="justify-content:space-between"><b style="font-size:12px">Condition ${i+1}</b><button class="btn danger" data-rule-remove="${i}">Remove</button></div>
+        <label>Check</label><select class="field" data-rule-index="${i}" data-rule-key="kind">${options([['variable','Variable value'],['touching','Touching another element']],c.kind||'variable')}</select>
+        ${(c.kind||'variable')==='touching'?`<label>Touching which element?</label><select class="field" data-rule-index="${i}" data-rule-key="target">${targetOptions(c.target)}</select>`:`<label>Variable</label><select class="field" data-rule-index="${i}" data-rule-key="variable">${variableOptions(c.variable)}</select><label>Comparison</label><select class="field" data-rule-index="${i}" data-rule-key="op">${options([['==','Equals'],['!=','Not equal'],['>=','At least'],['>','Greater than'],['<=','At most'],['<','Less than']],c.op)}</select><label>Compare with</label><input class="field" data-rule-index="${i}" data-rule-key="value" value="${attr(c.value)}">`}
+      </div>`).join('')}
+      <button class="btn" id="addCondition">＋ Add visibility condition</button>
+</details>` : ''}`;
+      return;
+    }
+    if (o.type !== 'button') {
+      panel.innerHTML = `<strong style="font-size:13px">Click actions</strong><div class="empty">Select a <b>button</b> element to make it change variables, show or hide elements, or move elements.</div>`;
+      return;
+    }
+    const expandedActions=new Set([...panel.querySelectorAll('details[data-action-card][open]')].map(el=>el.dataset.actionCard));
+    panel.innerHTML = `<strong style="font-size:13px">When clicked...</strong><p class="hint">Type a short command to add behavior. Click an existing action to edit the details.</p><div class="cmd-row"><input class="field command-input" id="quickAction" placeholder="e.g. add score 1" aria-label="Type an action"><button class="btn primary" id="quickAddAction">Add</button></div><div class="cmd-error" id="quickActionError" role="status"></div>${quickExamples}<label>Or press this keyboard key (optional)</label><input class="field" data-prop="hotkey" value="${attr(o.hotkey || '')}" placeholder="Example: space, a, ArrowLeft"><label class="toggle-line"><input type="checkbox" data-prop="holdKey" ${o.holdKey?'checked':''}> Repeat while key is held (for paddles / games)</label><p class="hint">Keyboard actions work during testing and on the exported website.</p>
+      ${o.actions.map((a, i) => `<details class="rule compact-rule" data-action-card="${i}" ${expandedActions.has(String(i))?'open':''}><summary>${i+1}. ${h(quickSummary(a))}</summary><div class="compact-body"><div class="row" style="justify-content:flex-end"><button class="btn danger" data-delete-action="${i}" style="padding:3px 7px">Remove</button></div>
+        <label>What happens?</label><select class="field" data-action-index="${i}" data-action-key="type">${options([['math','Math: absolute, round, modulo...'],['moveWithVars','Move using speed variables'],['bounceEdges','Bounce at screen edges'],['readPosition','Read object X/Y into variable'],['followY','Follow another object'],['add','Increase or decrease a number'],['set','Change a variable to a value'],['multiply','Multiply a variable'],['copyVar','Copy another variable'],['random','Set variable to a random number'],['time','Set variable to current time'],['date','Set variable to today’s date'],['position','Set position from variables'],['randomPosition','Move element to a random position'],['show','Make an element appear'],['hide','Make an element disappear'],['toggle','Show if hidden, hide if visible'],['move','Move an element'],['text','Change an element’s text'],['background','Change an element’s color'],['opacity','Change an element’s transparency'],['size','Resize an element']],a.type)}</select>
+        ${['add','set','multiply','copyVar','random','time','date','math','readPosition'].includes(a.type) ? `<label>Variable to change</label><select class="field" data-action-index="${i}" data-action-key="variable">${variableOptions(a.variable)}</select>${a.type==='math' ? `<label>Math function</label><select class="field" data-action-index="${i}" data-action-key="operation">${options([['abs','Absolute value'],['negate','Negate'],['round','Round'],['floor','Round down'],['ceil','Round up'],['sqrt','Square root'],['mod','Modulo'],['min','Minimum'],['max','Maximum'],['clamp','Clamp between two numbers']],a.operation||'abs')}</select><label>Number (for modulo/min/max/clamp)</label><input class="field" data-action-index="${i}" data-action-key="value" value="${attr(a.value)}"><label>Second number (clamp only)</label><input class="field" data-action-index="${i}" data-action-key="value2" value="${attr(a.value2??'100')}">` : a.type==='readPosition' ? `<label>Read</label><select class="field" data-action-index="${i}" data-action-key="axis">${options([['x','X'],['y','Y']],a.axis||'x')}</select>` : a.type==='copyVar' ? `<label>Copy value from</label><select class="field" data-action-index="${i}" data-action-key="fromVar">${variableOptions(a.fromVar)}</select>` : a.type === 'time' || a.type === 'date' ? '' : `<label>${a.type === 'add' ? 'Amount to add' : a.type === 'multiply' ? 'Multiply by' : a.type === 'random' ? 'Maximum random number (0 to this)' : 'New value'}</label><input class="field" data-action-index="${i}" data-action-key="value" value="${attr(a.value)}">`}` : ''}
+        ${['show','hide','toggle','move','position','randomPosition','text','background','opacity','size','moveWithVars','bounceEdges','readPosition','followY'].includes(a.type) ? `<label>Target element</label><select class="field" data-action-index="${i}" data-action-key="target">${targetOptions(a.target)}</select>` : ''}
+        ${['moveWithVars','bounceEdges'].includes(a.type)?`<label>X speed variable</label><select class="field" data-action-index="${i}" data-action-key="xvar">${variableOptions(a.xvar)}</select><label>Y speed variable</label><select class="field" data-action-index="${i}" data-action-key="yvar">${variableOptions(a.yvar)}</select>`:''}
+        ${a.type==='followY'?`<label>Follow which element?</label><select class="field" data-action-index="${i}" data-action-key="follow">${targetOptions(a.follow)}</select><label>Pixels per action</label><input class="field" data-action-index="${i}" data-action-key="value" value="${attr(a.value)}">`:''}
+        ${a.type === 'position' ? `<div class="mini-grid"><div><label>Read X from variable</label><select class="field" data-action-index="${i}" data-action-key="xvar">${variableOptions(a.xvar)}</select></div><div><label>Read Y from variable</label><select class="field" data-action-index="${i}" data-action-key="yvar">${variableOptions(a.yvar)}</select></div></div>` : ''}
+        ${a.type === 'move' ? `<div class="mini-grid"><div><label>Move X by</label><input class="field" type="number" data-action-index="${i}" data-action-key="dx" value="${Number(a.dx)||0}"></div><div><label>Move Y by</label><input class="field" type="number" data-action-index="${i}" data-action-key="dy" value="${Number(a.dy)||0}"></div></div>` : ''}
+        ${a.type === 'text' ? `<label>New text (you can use {score})</label><input class="field" data-action-index="${i}" data-action-key="value" value="${attr(a.value)}">` : ''}
+        ${a.type === 'background' ? `<label>New background color</label><input type="color" class="field" data-action-index="${i}" data-action-key="value" value="${/^#[0-9a-f]{6}$/i.test(a.value||'')?attr(a.value):'#22c55e'}">` : ''}
+        ${a.type === 'opacity' ? `<label>Transparency (0 = invisible, 100 = solid)</label><input class="field" type="number" min="0" max="100" data-action-index="${i}" data-action-key="value" value="${attr(a.value)}">` : ''}
+        ${a.type === 'size' ? `<div class="mini-grid"><div><label>New width</label><input class="field" type="number" data-action-index="${i}" data-action-key="w" value="${Number(a.w)||100}"></div><div><label>New height</label><input class="field" type="number" data-action-index="${i}" data-action-key="h" value="${Number(a.h)||50}"></div></div>` : ''}
+        <label class="toggle-line"><input type="checkbox" data-action-index="${i}" data-action-key="onlyIf" ${a.onlyIf?'checked':''}> Only do this if a variable meets a condition</label>
+        ${a.onlyIf ? `<label>Variable to check</label><select class="field" data-action-index="${i}" data-action-key="whenVar">${variableOptions(a.whenVar)}</select><label>Comparison</label><select class="field" data-action-index="${i}" data-action-key="whenOp">${options([['==','Equals'],['!=','Does not equal'],['>=','At least'],['>','Greater than'],['<=','At most'],['<','Less than']],a.whenOp||'>=')}</select><label>Compare with</label><input class="field" data-action-index="${i}" data-action-key="whenValue" value="${attr(a.whenValue??'1')}">` : ''}
+      </div></details>`).join('')}
+      <button class="btn" id="addAction">＋ Detailed action</button><p class="hint">Create variables under Variables. Element numbers are shown in the Style tab.</p>`;
+  }
+  function compareValues(a, op, b) {
+    if (op === '==') return String(a) === String(b);
+    if (op === '!=') return String(a) !== String(b);
+    if (!Number.isFinite(Number(a)) || !Number.isFinite(Number(b))) return false;
+    return op === '>=' ? Number(a) >= Number(b) : op === '<=' ? Number(a) <= Number(b) : op === '>' ? Number(a) > Number(b) : Number(a) < Number(b);
+  }
+  function runAutoRules(state) {
+    for (let pass=0; pass<Math.max(1,autoRules.length+1);pass++) {
+      let changed=false;
+      autoRules.forEach((r,i) => {
+        const matches=compareValues(state[r.watch],r.op,parse(r.value));
+        if (!matches) triggeredRules[i]=false;
+        if (!matches || triggeredRules[i]) return;
+        triggeredRules[i]=true;
+        const old=JSON.stringify(state);
+        if (['set','add','multiply'].includes(r.action)) {
+          if (!(r.target in state)) return;
+          const amount=r.source==='variable'?`{${r.amount}}`:r.amount;
+          runActions([{type:r.action,variable:r.target,value:amount}]);
+        } else if (r.action) {
+          runActions([{type:r.action,target:r.targetElement,dx:r.dx??20,dy:r.dy??0}]);
+        }
+        if (JSON.stringify(state)!==old)changed=true;
+      });
+      if (!changed)break;
+    }
+  }
+  function autoRulesMarkup() {
+    return autoRules.map((r,i) => `<details class="rule compact-rule" open><summary>WHEN ${h(r.watch)} ${h(r.op)} ${h(r.value)} → DO ${h(r.action)}</summary><div class="compact-body">
+      <div class="row" style="justify-content:space-between"><b style="font-size:12px">Event ${i+1}</b><button class="btn danger" data-remove-auto="${i}">Remove</button></div>
+      <label>WHEN variable</label><select class="field" data-auto="${i}" data-field="watch">${variableOptions(r.watch)}</select>
+      <label>Is...</label><select class="field" data-auto="${i}" data-field="op">${options([['==','Equal to'],['!=','Not equal to'],['>=','At least'],['>','Greater than'],['<=','At most'],['<','Less than']],r.op)}</select>
+      <label>This value</label><input class="field" data-auto="${i}" data-field="value" value="${attr(r.value)}">
+      <label>DO this</label><select class="field" data-auto="${i}" data-field="action">${options([['set','Set variable to value'],['add','Add to variable'],['multiply','Multiply variable'],['show','Show an object'],['hide','Hide an object'],['toggle','Show/hide object'],['move','Move object'],['randomPosition','Move object randomly']],r.action)}</select>
+      ${['set','add','multiply'].includes(r.action)?`<label>Change variable</label><select class="field" data-auto="${i}" data-field="target">${variableOptions(r.target)}</select><label>${r.action==='add'?'Amount to add':r.action==='multiply'?'Multiply by':'New value'}</label><input class="field" data-auto="${i}" data-field="amount" value="${attr(r.amount)}"><p class="hint">You can type a number or {anotherVariable}.</p>`:''}
+      ${['show','hide','toggle','move','randomPosition'].includes(r.action)?`<label>Object to affect</label><select class="field" data-auto="${i}" data-field="targetElement">${targetOptions(r.targetElement)}</select>`:''}
+      ${r.action==='move'?`<div class="mini-grid"><div><label>Move right/left (X)</label><input class="field" data-auto="${i}" data-field="dx" value="${attr(r.dx??'20')}"></div><div><label>Move down/up (Y)</label><input class="field" data-auto="${i}" data-field="dy" value="${attr(r.dy??'0')}"></div></div>`:''}
+      </div></details>`).join('');
+  }
+  function renderAutoRules() { $('autoRules').innerHTML=autoRulesMarkup(); }
+  const loopActionTypes=[['moveWithVars','Move by X/Y speed variables'],['bounceEdges','Bounce at canvas edges'],['math','Math: absolute, round, remainder...'],['readPosition','Save element X or Y into variable'],['followY','Follow another element vertically'],['add','Add to variable'],['set','Set variable'],['multiply','Multiply variable'],['move','Move by amount'],['position','Position from variables'],['random','Random number'],['show','Show element'],['hide','Hide element'],['randomPosition','Random location']];
+  function newStep(type='moveWithVars'){
+    return {type,target:items[0]?.id||0,variable:Object.keys(variables)[0]||'',value:'1',value2:'100',operation:'abs',xvar:'vx',yvar:'vy',axis:'both',follow:items[0]?.id||0,dx:'0',dy:'2',onlyIf:false,whenVar:Object.keys(variables)[0]||'',whenOp:'>=',whenValue:'1'};
+  }
+  function renderLoops(){
+    const expandedLoops=new Set([...$('loopList').querySelectorAll('details[data-loop-card][open]')].map(n=>n.dataset.loopCard));
+    const expandedSteps=new Set([...$('loopList').querySelectorAll('details[data-step-card][open]')].map(n=>n.dataset.stepCard));
+    $('loopList').innerHTML=gameLoops.map((l,i)=>`<details class="loop-card" data-loop-card="${i}" ${expandedLoops.has(String(i))?'open':''}>
+      <summary>↻ Every ${Number(l.every)||50} ms · ${l.steps.length} action${l.steps.length===1?'':'s'} ${l.enabled===false?'(off)':''}</summary><div class="compact-body">
+      <div class="row" style="justify-content:flex-end"><button class="btn danger" data-loop-remove="${i}">Remove loop</button></div>
+      <label class="toggle-line"><input type="checkbox" data-loop="${i}" data-key="enabled" ${l.enabled!==false?'checked':''}> Enabled</label>
+      <label>Repeat every (milliseconds)</label><input class="field" type="number" min="16" max="10000" step="1" data-loop="${i}" data-key="every" value="${l.every||50}">
+      <div class="cmd-row"><input class="field command-input" data-loop-command="${i}" placeholder="Type an action, e.g. move #3 5 0" aria-label="Type a loop action"><button class="btn primary" data-loop-command-add="${i}">Add</button></div>
+      ${(l.steps||[]).map((a,j)=>`<details class="loop-step" data-step-card="${i}:${j}" ${expandedSteps.has(`${i}:${j}`)?'open':''}>
+        <summary>${j+1}. ${h(quickSummary(a))}</summary><div class="compact-body"><div class="row" style="justify-content:flex-end"><button class="btn danger" data-loop="${i}" data-step-remove="${j}">Remove</button></div>
+        <label>Action</label><select class="field" data-loop="${i}" data-step="${j}" data-field="type">${options(loopActionTypes,a.type)}</select>
+        ${['moveWithVars','bounceEdges','position'].includes(a.type)?`<label>X speed / position variable</label><select class="field" data-loop="${i}" data-step="${j}" data-field="xvar">${variableOptions(a.xvar)}</select><label>Y speed / position variable</label><select class="field" data-loop="${i}" data-step="${j}" data-field="yvar">${variableOptions(a.yvar)}</select>`:''}
+        ${['moveWithVars','bounceEdges','readPosition','followY','move','position','show','hide','randomPosition'].includes(a.type)?`<label>Which element?</label><select class="field" data-loop="${i}" data-step="${j}" data-field="target">${targetOptions(a.target)}</select>`:''}
+        ${['math','readPosition','add','set','multiply','random'].includes(a.type)?`<label>Variable to change</label><select class="field" data-loop="${i}" data-step="${j}" data-field="variable">${variableOptions(a.variable)}</select>`:''}
+        ${a.type==='math'?`<label>Math function</label><select class="field" data-loop="${i}" data-step="${j}" data-field="operation">${options([['abs','Absolute value |x|'],['negate','Change positive / negative'],['round','Round to nearest'],['floor','Round down'],['ceil','Round up'],['sqrt','Square root'],['mod','Remainder / modulo'],['min','Keep smaller value'],['max','Keep larger value'],['clamp','Keep between minimum and maximum']],a.operation)}</select>`:''}
+        ${a.type==='readPosition'||a.type==='bounceEdges'?`<label>Axis</label><select class="field" data-loop="${i}" data-step="${j}" data-field="axis">${options([['both','Both X and Y'],['x','X only'],['y','Y only']],a.axis||'both')}</select>`:''}
+        ${a.type==='followY'?`<label>Follow this element</label><select class="field" data-loop="${i}" data-step="${j}" data-field="follow">${targetOptions(a.follow)}</select>`:''}
+        ${['math','add','set','multiply','random','followY'].includes(a.type)?`<label>${a.type==='math'?'Number to use (for mod/min/max/clamp)':a.type==='followY'?'Max pixels per tick':'Value (or {variable})'}</label><input class="field" data-loop="${i}" data-step="${j}" data-field="value" value="${attr(a.value??'1')}">`:''}
+        ${a.type==='math'?`<label>Second number (clamp maximum)</label><input class="field" data-loop="${i}" data-step="${j}" data-field="value2" value="${attr(a.value2??'100')}">`:''}
+        ${a.type==='move'?`<label>X amount</label><input class="field" data-loop="${i}" data-step="${j}" data-field="dx" value="${attr(a.dx||'0')}"><label>Y amount</label><input class="field" data-loop="${i}" data-step="${j}" data-field="dy" value="${attr(a.dy||'0')}">`:''}
+        <label class="toggle-line"><input type="checkbox" data-loop="${i}" data-step="${j}" data-field="onlyIf" ${a.onlyIf?'checked':''}> Only run if variable matches</label>
+        ${a.onlyIf?`<select class="field" data-loop="${i}" data-step="${j}" data-field="whenVar">${variableOptions(a.whenVar)}</select><select class="field" data-loop="${i}" data-step="${j}" data-field="whenOp">${options([['>=','At least'],['==','Equals'],['<=','At most'],['>','Above'],['<','Below'],['!=','Not equal']],a.whenOp||'>=')}</select><input class="field" data-loop="${i}" data-step="${j}" data-field="whenValue" value="${attr(a.whenValue??'1')}">`:''}
+      </div></details>`).join('')}
+      <button class="btn" data-loop="${i}" data-loop-add-step="1">＋ Add detailed step</button>${quickExamples}
+      <div class="cmd-error" data-loop-error="${i}" role="status"></div></div>
+    </details>`).join('');
+  }
+  function render() { renderStage(); renderLayers(); renderVariables(); renderLoops();renderAutoRules(); renderInspector(); updateCode(); }
+  function refresh() { renderStage(); renderLayers(); updateCode(); }
+  function updateCode() { if (!customSource) $('source').value = generateHTML(); }
+  function redrawLive() {
+    stage.querySelectorAll('.element').forEach(el=>{const item=byId(el.dataset.id);if(item)paint(el,item)});
+  }
+  function stopLoops(){loopTimers.forEach(clearInterval);loopTimers=[];heldKeys.clear();}
+  function startLoops(){
+    stopLoops();
+    for(const rule of gameLoops){
+      if(rule.enabled===false)continue;
+      loopTimers.push(setInterval(()=>{
+        if(mode!=='test')return;
+        runActions(rule.steps||[]);runCollisions();redrawLive();renderVariablesTestSummary();
+      },clamp(Number(rule.every)||50,16,10000)));
+    }
+    loopTimers.push(setInterval(()=>{
+      if(mode!=='test')return;
+      let updated=false;
+      for(const o of items)if(o.type==='button'&&o.holdKey&&o.hotkey&&heldKeys.has(keyName(o.hotkey))){runActions(o.actions||[]);updated=true;}
+      if(updated){runCollisions();redrawLive();renderVariablesTestSummary();}
+    },30));
+  }
+  const heldKeys=new Set();
+  function beginTest() {
+    mode = 'test'; selectedId = null; runtimeVars = { ...variables }; triggeredRules = {}; triggeredCollisions = {}; live = Object.fromEntries(items.map(o => [o.id, { x: o.x, y: o.y, w:o.w, h:o.h, bg:o.bg, opacity:o.opacity, visible: !o.initiallyHidden }])); runCollisions(); render(); renderVariablesTestSummary(); startLoops();
+  }
+  function endTest() { stopLoops();mode = 'design'; live = {}; render(); }
+  function overlaps(a, b) {
+    if (!a || !b || a.id === b.id) return false;
+    const p = currentPosition(a), q = currentPosition(b);
+    return p.x < q.x + (q.w ?? b.w) && p.x + (p.w ?? a.w) > q.x && p.y < q.y + (q.h ?? b.h) && p.y + (p.h ?? a.h) > q.y;
+  }
+  function readNumber(raw,state=runtimeVars) {
+    if(typeof raw==='number')return raw;
+    const input=String(raw??'0').trim(),variable=input.match(/^\{([A-Za-z_]\w*)\}$/);
+    return variable?Number(state[variable[1]])||0:input in state?Number(state[input])||0:Number(input)||0;
+  }
+  function doMath(value,operation,a,b) {
+    const v=Number(value)||0;
+    switch(operation){
+      case 'abs':return Math.abs(v);
+      case 'negate':return -v;
+      case 'floor':return Math.floor(v);
+      case 'ceil':return Math.ceil(v);
+      case 'round':return Math.round(v);
+      case 'sqrt':return Math.sqrt(Math.max(0,v));
+      case 'mod':return a===0?v:((v%a)+Math.abs(a))%Math.abs(a);
+      case 'min':return Math.min(v,a);
+      case 'max':return Math.max(v,a);
+      case 'clamp':return Math.max(Math.min(a,b),Math.min(Math.max(a,b),v));
+      default:return v;
+    }
+  }
+  function runActions(steps) {
+    for (const a of steps) {
+      if (a.onlyIf && !compareValues(runtimeVars[a.whenVar], a.whenOp || '>=', parse(a.whenValue ?? '1'))) continue;
+      const st = live[a.target];
+      if (a.type === 'set' && a.variable in runtimeVars) runtimeVars[a.variable] = typeof a.value==='string' && /^\{[A-Za-z_]\w*\}$/.test(a.value.trim()) ? readNumber(a.value) : parse(a.value);
+      if (a.type === 'math' && a.variable in runtimeVars) runtimeVars[a.variable] = doMath(runtimeVars[a.variable],a.operation,readNumber(a.value),readNumber(a.value2));
+      if (a.type === 'readPosition' && st && a.variable in runtimeVars) runtimeVars[a.variable] = cleanCoord(a.axis==='y'?st.y:st.x);
+      if (a.type === 'moveWithVars' && st) {st.x+=readNumber(a.xvar);st.y+=readNumber(a.yvar);}
+      if (a.type === 'bounceEdges' && st) {
+        const hitX=st.x<=0 && readNumber(a.xvar)<0 || st.x+(st.w||0)>=canvasWidth && readNumber(a.xvar)>0;
+        const hitY=st.y<=0 && readNumber(a.yvar)<0 || st.y+(st.h||0)>=canvasHeight && readNumber(a.yvar)>0;
+        if(hitX && a.axis!=='y' && a.xvar in runtimeVars)runtimeVars[a.xvar]=-readNumber(a.xvar);
+        if(hitY && a.axis!=='x' && a.yvar in runtimeVars)runtimeVars[a.yvar]=-readNumber(a.yvar);
+        st.x=clamp(st.x,0,Math.max(0,canvasWidth-st.w));st.y=clamp(st.y,0,Math.max(0,canvasHeight-st.h));
+      }
+      if (a.type === 'followY' && st && live[a.follow]) {
+        const other=live[a.follow],speed=Math.max(0,readNumber(a.value));
+        const d=other.y+(other.h||0)/2 - st.y-st.h/2;
+        st.y=clamp(st.y+Math.sign(d)*Math.min(Math.abs(d),speed),0,canvasHeight-st.h);
+      }
+      if (a.type === 'add' && a.variable in runtimeVars) runtimeVars[a.variable] = (Number(runtimeVars[a.variable]) || 0) + readNumber(a.value);
+      if (a.type === 'multiply' && a.variable in runtimeVars) runtimeVars[a.variable] = (Number(runtimeVars[a.variable]) || 0) * readNumber(a.value);
+      if (a.type === 'copyVar' && a.variable in runtimeVars && a.fromVar in runtimeVars) runtimeVars[a.variable] = runtimeVars[a.fromVar];
+      if (a.type === 'text' && st) st.text = String(a.value ?? '');
+      if (a.type === 'background' && st && /^#[0-9a-f]{6}$/i.test(a.value)) st.bg = a.value;
+      if (a.type === 'opacity' && st) st.opacity = clamp(Number(a.value) || 0, 0, 100);
+      if (a.type === 'size' && st) { st.w = clamp(Number(a.w)||24,24,canvasWidth); st.h = clamp(Number(a.h)||24,24,canvasHeight); }
+      if (a.type === 'random' && a.variable in runtimeVars) runtimeVars[a.variable] = Math.floor(Math.random() * (Math.max(0,Number(a.value)||0)+1));
+      if (a.type === 'time' && a.variable in runtimeVars) runtimeVars[a.variable] = new Date().toLocaleTimeString();
+      if (a.type === 'date' && a.variable in runtimeVars) runtimeVars[a.variable] = new Date().toLocaleDateString();
+      if (a.type === 'position' && st) { st.x=Number(runtimeVars[a.xvar])||0; st.y=Number(runtimeVars[a.yvar])||0; }
+      if (a.type === 'randomPosition' && st) { const target=byId(a.target); st.x=Math.floor(Math.random()*Math.max(1,canvasWidth-(target?.w||0))); st.y=Math.floor(Math.random()*Math.max(1,canvasHeight-(target?.h||0))); }
+      if (a.type === 'show' && st) st.visible = true;
+      if (a.type === 'hide' && st) st.visible = false;
+      if (a.type === 'toggle' && st) st.visible = !st.visible;
+      if (a.type === 'move' && st) { st.x += readNumber(a.dx); st.y += readNumber(a.dy);if(a.keepInside){st.x=clamp(st.x,0,canvasWidth-st.w);st.y=clamp(st.y,0,canvasHeight-st.h);} }
+    }
+  }
+  function runCollisions() {
+    for (let round=0; round<Math.max(1,items.length); round++) {
+      let fired = false;
+      for (const o of items) for (let i=0;i<(o.collisionRules||[]).length;i++) {
+        const c = o.collisionRules[i], k = o.id+':'+i, other = byId(c.target);
+        const touching = overlaps(o, other);
+        if (!touching) { triggeredCollisions[k] = false; continue; }
+        if (triggeredCollisions[k]) continue;
+        triggeredCollisions[k] = true;
+        runActions([{...c,target:c.actionTarget}]);
+        fired = true;
+      }
+      if (!fired) break;
+    }
+    runAutoRules(runtimeVars);
+  }
+  function clickButton(o) {
+    if (!o) return;
+    runActions(o.actions);
+    runCollisions();
+    renderStage();
+    renderVariablesTestSummary();
+  }
+  function renderVariablesTestSummary() {
+    const existing = $('testVars'); if (existing) existing.remove();
+    const box = document.createElement('div'); box.id = 'testVars'; box.className = 'hint'; box.style.cssText = 'background:#dfeaff;padding:8px 14px;border-top:1px solid #b8cefa;word-break:break-word;';
+    box.textContent = 'Live variables: ' + JSON.stringify(runtimeVars); $('stage').parentElement.after(box);
+  }
+  function generateHTML() {
+    const css = [
+      'body { margin: 0; font-family: Arial, sans-serif; color: #1f2937; }',
+      '.page {',
+      '  position: relative;',
+      `  width: ${canvasWidth}px;`,
+      `  min-height: ${canvasHeight}px;`,
+      '  margin: 0 auto;',
+      `  background: ${canvasBg};`,
+      '  overflow: hidden;',
+      '}',
+      '.page > * {',
+      '  box-sizing: border-box;',
+      '  position: absolute;',
+      '  display: flex;',
+      '  align-items: center;',
+      '  margin: 0;',
+      '  white-space: pre-wrap;',
+      '}',
+      '.page > button { cursor: pointer; }'
+    ];
+    for (const o of items) {
+      const block = [
+        `  left: ${o.x}px;`,
+        `  top: ${o.y}px;`,
+        `  width: ${o.w}px;`,
+        `  height: ${o.h}px;`
+      ];
+      if (o.bg !== 'transparent') block.push(`  background: ${o.bg};`);
+      if (o.color !== '#1f2937') block.push(`  color: ${o.color};`);
+      if (o.font !== 'Arial') block.push(`  font-family: ${o.font.includes(' ') ? `'${o.font}'` : o.font};`);
+      if (o.fontSize !== 16) block.push(`  font-size: ${o.fontSize}px;`);
+      if (o.weight !== 400) block.push(`  font-weight: ${o.weight};`);
+      if (o.italic) block.push('  font-style: italic;');
+      if (o.align !== 'left') block.push(`  justify-content: ${o.align === 'center' ? 'center' : 'flex-end'};`, `  text-align: ${o.align};`);
+      if (o.border > 0) block.push(`  border: ${o.border}px solid ${o.borderColor};`);
+      else if (o.type === 'button') block.push('  border: 0;');
+      if (o.radius > 0) block.push(`  border-radius: ${o.radius}px;`);
+      if (o.opacity !== 100) block.push(`  opacity: ${o.opacity / 100};`);
+      if (o.shadow) block.push('  box-shadow: 0 8px 20px #14233b3a;');
+      if (o.rotation) block.push(`  transform: rotate(${Number(o.rotation)}deg);`);
+      if (o.blur) block.push(`  filter: blur(${Number(o.blur)}px);`);
+      if (o.type === 'image') block.push(`  object-fit: ${o.fit};`);
+      if (o.type === 'button' && validUrl(o.buttonImage) && o.buttonImageMode === 'background') {
+        block.push(`  background-image: url('${o.buttonImage.replace(/['\\]/g, '')}');`, '  background-size: cover;', '  background-position: center;');
+      }
+      if (o.type === 'button' && o.buttonImageMode === 'icon' && validUrl(o.buttonImage)) block.push('  gap: 7px;');
+      if (o.type === 'button' && o.buttonImageMode === 'free' && validUrl(o.buttonImage)) block.push('  position: absolute;');
+      if (o.initiallyHidden) block.push('  display: none;');
+      css.push('', `#item-${o.id} {`, ...block, '}');
+    }
+    const body = items.map(o => {
+      const id = `item-${o.id}`;
+      if (o.type === 'image') return validUrl(o.src) ? `    <img id="${id}" src="${attr(o.src)}" alt="${attr(o.alt)}">` : `    <div id="${id}">Image placeholder</div>`;
+      const tag = o.type === 'button' ? 'button' : o.type === 'heading' || o.type === 'text' ? o.tag : 'div';
+      const attrs = o.type === 'button' ? ` type="button"` : '';
+      const freeImage = o.type === 'button' && o.buttonImageMode === 'free' && validUrl(o.buttonImage);
+      const dynamicText = `<span data-dynamic-text="${id}">${h(o.text)}</span>`;
+      const content = o.type === 'variable' ? h(o.text) + `<span data-bind="${attr(o.bind)}"></span>` : o.type === 'button' && validUrl(o.buttonImage) && o.buttonImageMode !== 'background' ? freeImage ? `<span style="position:relative;width:100%;height:100%;display:flex;align-items:center;justify-content:center">${dynamicText}<img src="${attr(o.buttonImage)}" alt="" style="position:absolute;left:${o.imageX ?? 8}px;top:${o.imageY ?? 12}px;width:${o.imageW ?? 24}px;height:${o.imageH ?? 24}px;object-fit:contain;pointer-events:none"></span>` : `<img src="${attr(o.buttonImage)}" alt="" style="width:24px;height:24px;object-fit:contain;flex-shrink:0">${dynamicText}` : dynamicText;
+      return `    <${tag} id="${id}"${attrs}>${content}</${tag}>`;
+    });
+    const dynamic = gameLoops.length>0 || autoRules.length > 0 || items.some(o => o.actions.length || o.collisionRules?.length || o.condition || o.conditions?.length || o.initiallyHidden || o.type === 'variable' || /\{[A-Za-z_]\w*\}/.test(o.text));
+    const script = [];
+    if (dynamic) {
+      const conditions = items.flatMap(o => (o.conditions || (o.condition ? [o.condition] : [])).map(c => ({...c,id: `item-${o.id}`, target: `item-${c.target}`})));
+      const actions = Object.fromEntries(items.filter(o => o.type === 'button' && o.actions.length).map(o => [`item-${o.id}`,o.actions]));
+      const collisionRules = items.flatMap(o => (o.collisionRules || []).map(c => ({...c,source: `item-${o.id}`,target: `item-${c.target}`})));
+      const positions = Object.fromEntries(items.map(o => [`item-${o.id}`, {x:o.x,y:o.y,w:o.w,h:o.h}]));
+      const initiallyHidden = Object.fromEntries(items.map(o => [`item-${o.id}`,!o.initiallyHidden]));
+      const initialTexts = Object.fromEntries(items.filter(o=>o.type!=='image' && o.type!=='variable').map(o=>[`item-${o.id}`,o.text]));
+      const hotkeys = Object.fromEntries(items.filter(o=>o.type==='button' && o.hotkey && o.actions.length).map(o=>[`item-${o.id}`,o.hotkey]));
+      const loops = gameLoops.filter(l=>l.enabled!==false).map(l=>({every:Math.max(16,Math.min(10000,Number(l.every)||50)),steps:l.steps||[]}));
+      const heldButtons = Object.fromEntries(items.filter(o=>o.type==='button' && o.holdKey && o.hotkey && o.actions.length).map(o=>[`item-${o.id}`,o.hotkey]));
+      const runtime = String.raw`<script>
+  const variables = ${JSON.stringify(variables, null, 2)};
+  const conditions = ${JSON.stringify(conditions, null, 2)};
+  const autoRules = ${JSON.stringify(autoRules, null, 2)};
+  const actions = ${JSON.stringify(actions, null, 2)};
+  const collisions = ${JSON.stringify(collisionRules, null, 2)};
+  const positions = ${JSON.stringify(positions, null, 2)};
+  const visibility = ${JSON.stringify(initiallyHidden, null, 2)};
+  const initialTexts = ${JSON.stringify(initialTexts, null, 2)};
+  const textOverrides = {};
+  const hotkeys = ${JSON.stringify(hotkeys, null, 2)};
+  const heldButtons = ${JSON.stringify(heldButtons, null, 2)};
+  const gameLoops = ${JSON.stringify(loops, null, 2)};
+  const fired = {};
+  const touched = {};
+
+  function compare(a, op, b) {
+    if (op === '==') return String(a) === String(b);
+    if (op === '!=') return String(a) !== String(b);
+    if (!Number.isFinite(Number(a)) || !Number.isFinite(Number(b))) return false;
+    a = Number(a);
+    b = Number(b);
+    return op === '>=' ? a >= b : op === '<=' ? a <= b : op === '>' ? a > b : a < b;
+  }
+
+  function overlap(first, second) {
+    const a = positions[first], b = positions[second];
+    if (!a || !b || first === second) return false;
+    return a.x < b.x + b.w && a.x + a.w > b.x &&
+           a.y < b.y + b.h && a.y + a.h > b.y;
+  }
+
+  function parseValue(raw) {
+    const text = String(raw).trim();
+    return text !== '' && !Number.isNaN(Number(text)) ? Number(text) : text;
+  }
+
+  function updateVariableRules() {
+    for (let pass=0;pass<=autoRules.length;pass++) {
+      let changed=false;
+      autoRules.forEach((rule,index)=>{
+        const matches=compare(variables[rule.watch],rule.op,rule.value);
+        if(!matches)fired[index]=false;
+        if(!matches||fired[index])return;
+        fired[index]=true;
+        const before=JSON.stringify(variables);
+        if(['set','add','multiply'].includes(rule.action)){
+          if(!(rule.target in variables))return;
+          const amount=rule.source==='variable'?'{'+rule.amount+'}':rule.amount;
+          runSteps([{type:rule.action,variable:rule.target,value:amount}]);
+        } else if(rule.action){
+          runSteps([{type:rule.action,target:rule.targetElement,dx:rule.dx??20,dy:rule.dy??0}]);
+        }
+        if(before!==JSON.stringify(variables))changed=true;
+      });
+      if(!changed)break;
+    }
+  }
+
+  function readNumber(raw) {
+    if(typeof raw==='number')return raw;
+    const input=String(raw??'0').trim(),match=input.match(/^\{([A-Za-z_]\w*)\}$/);
+    return match?Number(variables[match[1]])||0:input in variables?Number(variables[input])||0:Number(input)||0;
+  }
+  function doMath(value,operation,a,b){
+    const v=Number(value)||0;
+    switch(operation){
+      case 'abs':return Math.abs(v);
+      case 'negate':return -v;
+      case 'round':return Math.round(v);
+      case 'floor':return Math.floor(v);
+      case 'ceil':return Math.ceil(v);
+      case 'sqrt':return Math.sqrt(Math.max(0,v));
+      case 'mod':return a===0?v:((v%a)+Math.abs(a))%Math.abs(a);
+      case 'min':return Math.min(v,a);
+      case 'max':return Math.max(v,a);
+      case 'clamp':return Math.max(Math.min(a,b),Math.min(Math.max(a,b),v));
+      default:return v;
+    }
+  }
+  function runSteps(steps) {
+    for (const step of steps) {
+      if (step.onlyIf && !compare(variables[step.whenVar], step.whenOp || '>=', step.whenValue ?? '1')) continue;
+      const id = 'item-' + step.target;
+      const pos = positions[id];
+      if (step.type === 'set' && step.variable in variables) variables[step.variable] = /^\{[A-Za-z_]\w*\}$/.test(String(step.value).trim())?readNumber(step.value):parseValue(step.value);
+      if (step.type === 'math' && step.variable in variables) variables[step.variable] = doMath(variables[step.variable],step.operation,readNumber(step.value),readNumber(step.value2));
+      if (step.type === 'readPosition' && pos && step.variable in variables) variables[step.variable] = step.axis==='y'?pos.y:pos.x;
+      if (step.type === 'moveWithVars' && pos) {pos.x+=readNumber(step.xvar);pos.y+=readNumber(step.yvar);}
+      if (step.type === 'bounceEdges' && pos) {
+        const page=document.querySelector('.page'),maxX=page.clientWidth-pos.w,maxY=page.clientHeight-pos.h;
+        if(step.axis!=='y' && (pos.x<=0 && readNumber(step.xvar)<0 || pos.x>=maxX && readNumber(step.xvar)>0) && step.xvar in variables)variables[step.xvar]=-readNumber(step.xvar);
+        if(step.axis!=='x' && (pos.y<=0 && readNumber(step.yvar)<0 || pos.y>=maxY && readNumber(step.yvar)>0) && step.yvar in variables)variables[step.yvar]=-readNumber(step.yvar);
+        pos.x=Math.max(0,Math.min(maxX,pos.x));pos.y=Math.max(0,Math.min(maxY,pos.y));
+      }
+      if(step.type==='followY' && pos){
+        const follow=positions['item-'+step.follow];if(follow){const diff=follow.y+follow.h/2-pos.y-pos.h/2;const speed=Math.max(0,readNumber(step.value));pos.y=Math.max(0,Math.min(document.querySelector('.page').clientHeight-pos.h,pos.y+Math.sign(diff)*Math.min(Math.abs(diff),speed)));}
+      }
+      if (step.type === 'add' && step.variable in variables) variables[step.variable] = (Number(variables[step.variable]) || 0) + readNumber(step.value);
+      if (step.type === 'multiply' && step.variable in variables) variables[step.variable] = (Number(variables[step.variable]) || 0) * readNumber(step.value);
+      if (step.type === 'copyVar' && step.variable in variables && step.fromVar in variables) variables[step.variable] = variables[step.fromVar];
+      if (step.type === 'text' && pos) textOverrides[id] = String(step.value ?? '');
+      if (step.type === 'background' && pos && /^#[0-9a-f]{6}$/i.test(step.value)) document.getElementById(id).style.backgroundColor = step.value;
+      if (step.type === 'opacity' && pos) document.getElementById(id).style.opacity = Math.max(0,Math.min(100,Number(step.value)||0)) / 100;
+      if (step.type === 'size' && pos) { pos.w = Math.max(24,Number(step.w)||24); pos.h = Math.max(24,Number(step.h)||24); }
+      if (step.type === 'random' && step.variable in variables) variables[step.variable] = Math.floor(Math.random() * (Math.max(0,Number(step.value)||0) + 1));
+      if (step.type === 'time' && step.variable in variables) variables[step.variable] = new Date().toLocaleTimeString();
+      if (step.type === 'date' && step.variable in variables) variables[step.variable] = new Date().toLocaleDateString();
+      if (step.type === 'show' && pos) visibility[id] = true;
+      if (step.type === 'hide' && pos) visibility[id] = false;
+      if (step.type === 'toggle' && pos) visibility[id] = !visibility[id];
+      if (step.type === 'position' && pos) { pos.x = Number(variables[step.xvar]) || 0; pos.y = Number(variables[step.yvar]) || 0; }
+      if (step.type === 'randomPosition' && pos) {
+        pos.x = Math.floor(Math.random() * Math.max(1, document.querySelector('.page').clientWidth - pos.w + 1));
+        pos.y = Math.floor(Math.random() * Math.max(1, document.querySelector('.page').clientHeight - pos.h + 1));
+      }
+      if (step.type === 'move' && pos) { pos.x += readNumber(step.dx); pos.y += readNumber(step.dy);if(step.keepInside){const page=document.querySelector('.page');pos.x=Math.max(0,Math.min(page.clientWidth-pos.w,pos.x));pos.y=Math.max(0,Math.min(page.clientHeight-pos.h,pos.y));} }
+    }
+  }
+
+  function runCollisions() {
+    for (let pass = 0; pass < Math.max(1,collisions.length + 1); pass++) {
+      let changed = false;
+      collisions.forEach((rule, index) => {
+        const isTouching = overlap(rule.source, rule.target);
+        if (!isTouching) { touched[index] = false; return; }
+        if (touched[index]) return;
+        touched[index] = true;
+        runSteps([{ ...rule, target: rule.actionTarget }]);
+        changed = true;
+      });
+      if (!changed) break;
+    }
+  }
+
+  function updatePage() {
+    updateVariableRules();
+    for (const [id, pos] of Object.entries(positions)) {
+      const el = document.getElementById(id);
+      if (!el) continue;
+      el.style.left = pos.x + 'px';
+      el.style.top = pos.y + 'px';
+      el.style.width = pos.w + 'px';
+      el.style.height = pos.h + 'px';
+      const elementRules = conditions.filter(rule => rule.id === id);
+      const allowed = elementRules.every(rule => rule.kind === 'touching' ? overlap(rule.id,rule.target) : compare(variables[rule.variable],rule.op,rule.value));
+      el.style.display = allowed && visibility[id] !== false ? 'flex' : 'none';
+    }
+    document.querySelectorAll('[data-bind]').forEach(el => { el.textContent = variables[el.dataset.bind] ?? ''; });
+    document.querySelectorAll('[data-dynamic-text]').forEach(el => { const id = el.dataset.dynamicText, source = Object.hasOwn(textOverrides,id) ? textOverrides[id] : initialTexts[id]; el.textContent = String(source ?? '').replace(/\{([A-Za-z_]\w*)\}/g, (_,name) => variables[name] ?? ''); });
+  }
+
+  const heldKeys=new Set();
+  document.addEventListener('keyup',e=>heldKeys.delete(e.key===' '?'space':e.key.toLowerCase()));
+  window.addEventListener('blur',()=>heldKeys.clear());
+  document.addEventListener('keydown', event => {
+    if(event.target.matches('input,textarea,select,[contenteditable]'))return;
+    const normalized=event.key===' '?'space':event.key.toLowerCase();
+    if(Object.values(heldButtons).some(k=>String(k).toLowerCase()===normalized)){heldKeys.add(normalized);event.preventDefault();}
+    if (event.repeat) return;
+    const key = event.key === ' ' ? 'space' : event.key.toLowerCase();
+    for (const [id, hotkey] of Object.entries(hotkeys)) {
+      if (String(hotkey).trim().toLowerCase() !== key) continue;
+      event.preventDefault(); runSteps(actions[id] || []); runCollisions(); updatePage();
+    }
+  });
+
+  for (const [id, steps] of Object.entries(actions)) {
+    const element = document.getElementById(id);
+    if (!element) continue;
+    element.addEventListener('click', () => {
+      runSteps(steps);
+      runCollisions();
+      updatePage();
+    });
+  }
+
+  for(const loop of gameLoops)setInterval(()=>{runSteps(loop.steps);runCollisions();updatePage();},loop.every);
+  setInterval(()=>{
+    let didSomething=false;
+    for(const [id,key] of Object.entries(heldButtons))if(heldKeys.has(String(key).trim().toLowerCase())){runSteps(actions[id]||[]);didSomething=true;}
+    if(didSomething){runCollisions();updatePage();}
+  },30);
+  runCollisions();
+  updatePage();
+` + '</' + 'script>';
+      script.push(runtime);
+    }
+    return ['<!doctype html>', '<html lang="en">', '<head>', '  <meta charset="utf-8">', '  <meta name="viewport" content="width=device-width, initial-scale=1">', '  <title>My Website</title>', '  <style>', ...css.map(line => '    ' + line), '  </style>', '</head>', '<body>', '  <main class="page">', ...body, '  </main>', ...(script.length ? ['  ' + script.join('\n  ')] : []), '</body>', '</html>'].join('\n');
+  }
+  function download(filename, content, type) { const blob = new Blob([content], { type }); const url = URL.createObjectURL(blob); const a = document.createElement('a'); a.href = url; a.download = filename; document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(url), 2000); }
+  function code() { return customSource ? $('source').value : generateHTML(); }
+  function saveJSON() { return JSON.stringify({ format:'pixel-studio-1', items, variables, autoRules, gameLoops, loopNextId, nextId, canvasWidth, canvasHeight, canvasBg, gridSize, snap, showGrid, gridStyle, smartGuides, centerGuides, customSource, sourceCode: customSource ? $('source').value : null }, null, 2); }
+  function loadJSON(raw) {
+    const data = JSON.parse(raw);
+    if (data.format !== 'pixel-studio-1' || !Array.isArray(data.items) || typeof data.variables !== 'object' || !data.variables) throw new Error('Not a valid Blocklark project');
+    autoRules = Array.isArray(data.autoRules) ? data.autoRules : [];
+    items = data.items.filter(o => defaults[o.type]).map(o => ({ ...o, actions: Array.isArray(o.actions) ? o.actions : [], collisionRules: Array.isArray(o.collisionRules) ? o.collisionRules : [], condition: o.condition || null }));
+    variables = data.variables; nextId = Math.max(1, ...items.map(o => Number(o.id) + 1), Number(data.nextId) || 1);
+    canvasWidth = clamp(Number(data.canvasWidth) || 960, 300, 1920); canvasHeight = clamp(Number(data.canvasHeight) || 540, 300, 1200); canvasBg = /^#[0-9a-f]{6}$/i.test(data.canvasBg) ? data.canvasBg : '#ffffff';
+    gridSize = clamp(Number(data.gridSize) || 20, 4, 64); snap = Boolean(data.snap); showGrid = Boolean(data.showGrid); gridStyle=data.gridStyle||'lines';smartGuides=data.smartGuides!==false;centerGuides=data.centerGuides!==false;gameLoops=Array.isArray(data.gameLoops)?data.gameLoops:[];loopNextId=Number(data.loopNextId)||Math.max(1,...gameLoops.map(l=>Number(l.id)+1));
+    $('gridSlider').value = gridSize; $('gridSizeLabel').textContent = gridSize + ' px'; $('snapToggle').checked = snap; $('gridToggle').checked = showGrid; $('gridStyle').value=gridStyle; $('smartGuides').checked=smartGuides;$('centerGuides').checked=centerGuides;
+    selectedId = null; mode = 'design'; customSource = Boolean(data.customSource && typeof data.sourceCode === 'string'); $('source').readOnly = !customSource; $('editSource').textContent = customSource ? '↶ Visual code' : '✎ Edit code'; $('sourceStatus').textContent = customSource ? 'Manual code mode · download uses your edited code' : 'Clean generated source · no comments'; if (customSource) $('source').value = data.sourceCode; tab = 'style'; render();
+  }
+  root.querySelectorAll('[data-add]').forEach(button => {
+    button.addEventListener('click', () => add(button.dataset.add));
+    button.addEventListener('dragstart', event => event.dataTransfer.setData('text/x-pixel-element', button.dataset.add));
+  });
+  stage.addEventListener('dragover', event => { if (mode === 'design') event.preventDefault(); });
+  stage.addEventListener('drop', event => {
+    event.preventDefault(); if (mode !== 'design') return;
+    const type = event.dataTransfer.getData('text/x-pixel-element'); if (!defaults[type]) return;
+    const r = stage.getBoundingClientRect(), z = visibleSize(); add(type, (event.clientX - r.left)/z.x, (event.clientY - r.top)/z.y);
+  });
+  stage.addEventListener('pointerdown', event => {
+    if (mode === 'test') {
+      const el = event.target.closest('.element');
+      if (!el || el.dataset.kind === 'button') return;
+      const o = byId(el.dataset.id), pos = o && live[o.id];
+      if (!pos) return;
+      drag = {test:true,id:o.id,x:event.clientX,y:event.clientY,oldX:pos.x,oldY:pos.y};
+      el.setPointerCapture(event.pointerId);
+      event.preventDefault();
+      return;
+    }
+    if (mode !== 'design') return;
+    const el = event.target.closest('.element'); if (!el) { selectedId = null; render(); return; }
+    const o = byId(el.dataset.id); if (!o) return;
+    selectedId = o.id; const isResize = event.target.classList.contains('resize-handle');
+    record(); drag = { id:o.id, x:event.clientX, y:event.clientY, oldX:o.x, oldY:o.y, w:o.w, h:o.h, resize:isResize, image: !isResize && event.target.classList.contains('button-art') && o.buttonImageMode === 'free', imageX:o.imageX ?? 8, imageY:o.imageY ?? 12 };
+    el.setPointerCapture(event.pointerId); renderLayers(); renderInspector();
+    stage.querySelectorAll('.element').forEach(e => e.classList.toggle('selected', Number(e.dataset.id) === selectedId));
+    event.preventDefault();
+  });
+  stage.addEventListener('pointermove', event => {
+    if (drag?.test && mode === 'test') {
+      const o=byId(drag.id), pos=o && live[o.id];
+      if (!pos) return;
+      const z = visibleSize();
+      pos.x=clamp(Math.round(drag.oldX+(event.clientX-drag.x)/z.x),0,Math.max(0,canvasWidth-(pos.w??o.w)));
+      pos.y=clamp(Math.round(drag.oldY+(event.clientY-drag.y)/z.y),0,Math.max(0,canvasHeight-(pos.h??o.h)));
+      runCollisions();
+      stage.querySelectorAll('.element').forEach(el => { const item=byId(el.dataset.id); if(item)paint(el,item); });
+      renderVariablesTestSummary();
+      return;
+    }
+    if (!drag || mode !== 'design') return;
+    const o = byId(drag.id); if (!o) return;
+    const z = visibleSize(), dx = (event.clientX - drag.x)/z.x, dy = (event.clientY - drag.y)/z.y;
+    if (drag.image) { o.imageX = Math.round(drag.imageX + dx); o.imageY = Math.round(drag.imageY + dy); }
+    else if (drag.resize) { o.w = clamp(event.altKey?Math.round(drag.w+dx):snapAxis(drag.w+dx,'x'), 24, canvasWidth-o.x); o.h=clamp(event.altKey?Math.round(drag.h+dy):snapAxis(drag.h+dy,'y'),24,canvasHeight-o.y); drawGuides([]); }
+    else { const placed=snapObjectPosition(o,drag.oldX+dx,drag.oldY+dy,event.altKey);o.x=placed.x;o.y=placed.y;drawGuides(placed.guides); }
+    const el = stage.querySelector(`.element[data-id="${o.id}"]`); if (el) paint(el, o);
+    ['x','y','w','h','imageX','imageY'].forEach(k => { const input = root.querySelector(`[data-prop="${k}"]`); if (input) input.value = o[k]; }); updateCode();
+  });
+  stage.addEventListener('pointerup', () => { const wasTest = drag?.test; drag = null; drawGuides([]); if (wasTest) { renderStage(); renderVariablesTestSummary(); } });
+  stage.addEventListener('pointercancel', () => { const wasTest = drag?.test; drag = null; drawGuides([]); if (wasTest) renderStage(); });
+  stage.addEventListener('dblclick', event => { if (mode === 'design' && event.target.closest('.element')) { const f = $('textEditor'); if (f) f.focus(); } });
+  stage.addEventListener('click', event => { if (mode === 'test') { const el = event.target.closest('.element[data-kind="button"]'); if (el) clickButton(byId(el.dataset.id)); } });
+  document.addEventListener('keydown', event => {
+    if (mode !== 'test' || event.repeat || event.target.matches('input,textarea,select,[contenteditable]')) return;
+    const hits = items.filter(o => o.type === 'button' && o.hotkey && keyName(o.hotkey) === keyName(event.key));
+    if (hits.length) { event.preventDefault(); hits.forEach(clickButton); }
+  });
+  $('openProgramming').addEventListener('click',()=>{tab='rules';renderInspector();$('inspector').scrollTop=0;root.querySelector('.right').scrollIntoView({behavior:'smooth',block:'nearest'});});
+  $('openLoops').addEventListener('click',()=>{$('loopsSection').open=true;$('loopsSection').scrollIntoView({behavior:'smooth',block:'center'});});
+  root.querySelectorAll('[data-tab]').forEach(button => button.addEventListener('click', () => { tab = button.dataset.tab; renderInspector(); }));
+  root.addEventListener('focusin', event => { if (event.target.matches('input,textarea,select')) record(); });
+  $('inspector').addEventListener('change', event => { if (event.target.matches('input,select,textarea')) record(); }, true);
+  $('inspector').addEventListener('input', event => {
+    const input = event.target, o = selected();
+    if (input.dataset.auto !== undefined) { updateAutoField(input); return; }
+    if (input.dataset.page) {
+      if (input.dataset.page === 'bg') canvasBg = input.value;
+      if (input.dataset.page === 'width') canvasWidth = clamp(fitToGrid(Number(input.value) || 960), 300, 1920);
+      if (input.dataset.page === 'height') canvasHeight = clamp(fitToGrid(Number(input.value) || 540), 300, 1200);
+      if (input.dataset.page === 'preset' && input.value) { const [w, ht] = input.value.split('x').map(Number); canvasWidth = w; canvasHeight = ht; }
+      canvasWidth = clamp(canvasWidth,300,1920); canvasHeight = clamp(canvasHeight,300,1200);
+      refresh(); return;
+    }
+    if (!o) return;
+    if (input.dataset.prop) {
+      const key = input.dataset.prop;
+      if (key === 'transparent') o.bg = input.checked ? 'transparent' : '#ffffff';
+      else if (key === 'italic' || key === 'shadow' || key === 'initiallyHidden' || key === 'holdKey') o[key] = input.checked;
+      else if (['x','y','w','h','fontSize','radius','border','opacity','weight','imageX','imageY','imageW','imageH'].includes(key)) {
+        const n = Number(input.value) || 0;
+        o[key] = key === 'opacity' ? clamp(n,0,100) : key === 'w' ? clamp(n,24,canvasWidth-o.x) : key === 'h' ? clamp(n,24,canvasHeight-o.y) : key === 'x' ? clamp(n,0,canvasWidth-o.w) : key === 'y' ? clamp(n,0,canvasHeight-o.h) : Math.max(0,n);
+      } else o[key] = input.value;
+      const el = stage.querySelector(`.element[data-id="${o.id}"]`); if (el) paint(el, o);
+      updateCode();
+    }
+    if (input.dataset.ruleKey) { const c=(o.conditions||[])[Number(input.dataset.ruleIndex)]; if(c){c[input.dataset.ruleKey]=input.value; if(input.dataset.ruleKey==='kind')renderInspector(); updateCode();} }
+    if (input.dataset.collisionKey && (o.collisionRules||[])[Number(input.dataset.collisionIndex)]) {
+      const c=o.collisionRules[Number(input.dataset.collisionIndex)]; c[input.dataset.collisionKey]=input.value; updateCode();
+    }
+    if (input.dataset.actionKey && o.actions[Number(input.dataset.actionIndex)]) { const a = o.actions[Number(input.dataset.actionIndex)]; a[input.dataset.actionKey] = input.dataset.actionKey === 'onlyIf' ? input.checked : input.value; updateCode(); }
+  });
+  $('inspector').addEventListener('change', event => {
+    const input = event.target, o = selected();
+    if (input.dataset.auto !== undefined && input.dataset.field === 'action') { renderAutoRules();renderInspector();return; }
+    if (!o) return;
+    if (input.dataset.prop === 'transparent' || input.dataset.prop === 'tag' || input.dataset.prop === 'fit' || input.dataset.prop === 'buttonImageMode') renderInspector();
+
+    if (input.dataset.cond) { renderInspector(); updateCode(); }
+    if (input.dataset.collisionKey === 'type') { renderInspector(); updateCode(); }
+    if (input.dataset.actionKey === 'onlyIf') { renderInspector(); updateCode(); }
+    if (input.dataset.actionKey === 'type') {
+      const a = o.actions[Number(input.dataset.actionIndex)]; if (a) { a.type = input.value; a.variable = Object.keys(variables)[0] || ''; a.target = items[0]?.id ?? 0; a.value = '1'; a.dx = 16; a.dy = 0; a.xvar = Object.keys(variables)[0] || ''; a.yvar = Object.keys(variables)[0] || ''; a.fromVar = Object.keys(variables)[0] || ''; a.operation='abs';a.value2='100';a.axis='both';a.follow=items[0]?.id??0;a.w = 100; a.h = 50; a.onlyIf = false; a.whenVar = Object.keys(variables)[0] || ''; a.whenOp = '>='; a.whenValue = '1'; if (a.type === 'text') a.value='Score: {score}'; if (a.type === 'background') a.value='#22c55e'; if (a.type === 'opacity') a.value='50'; }
+      renderInspector(); updateCode();
+    }
+  });
+  function addQuickAction(input){
+    const o=selected();if(!o||o.type!=='button'||mode!=='design')return;
+    try{
+      const action=parseQuickCommand(input.value);
+      record();o.actions.push(action);renderInspector();updateCode();
+      const cards=$('inspector').querySelectorAll('details[data-action-card]');if(cards.length)cards[cards.length-1].open=false;
+    }catch(err){const n=$('quickActionError');if(n)n.textContent=err.message;}
+  }
+  $('inspector').addEventListener('keydown', e=>{if(e.key==='Enter'&&e.target.id==='quickAction'){e.preventDefault();addQuickAction(e.target);}});
+  $('inspector').addEventListener('click', event => {
+    if(event.target.id==='jumpToLoops'){$('loopsSection').open=true;$('loopsSection').scrollIntoView({behavior:'smooth',block:'center'});return;}
+    if(event.target.id==='addAutoRuleInspector'){addVariableEvent();return;}
+    if(event.target.dataset.removeAuto!==undefined){removeVariableEvent(Number(event.target.dataset.removeAuto));return;}
+    const o = selected(); if (!o) return;
+    if (event.target.id === 'quickAddAction') { addQuickAction($('quickAction'));return; }
+    if (event.target.id === 'addCollision') {
+      const other=items.find(t=>t.id!==o.id); if (!other) return;
+      record(); o.collisionRules ||= []; o.collisionRules.push({target:other.id,type:'add',variable:Object.keys(variables)[0]||'',value:'1',actionTarget:o.id,dx:20,dy:0});renderInspector();updateCode();return;
+    }
+    if (event.target.dataset.removeCollision !== undefined) { record();o.collisionRules.splice(Number(event.target.dataset.removeCollision),1);renderInspector();updateCode();return; }
+    if (event.target.id === 'addCondition') { record(); o.conditions ||= (o.condition ? [o.condition] : []); o.condition=null; o.conditions.push({kind:'variable',variable:Object.keys(variables)[0]||'',op:'>=',value:'1',target:items[0]?.id||0});renderInspector();updateCode(); }
+    if(event.target.dataset.ruleRemove!==undefined){record();o.conditions.splice(Number(event.target.dataset.ruleRemove),1);renderInspector();updateCode();}
+    if (event.target.id === 'addAction') { record(); o.actions.push({ type:'add', variable:Object.keys(variables)[0] || '', fromVar:Object.keys(variables)[0] || '', value:'1', target:items[0]?.id ?? 0, dx:16, dy:0, w:100, h:50, xvar:Object.keys(variables)[0] || '', yvar:Object.keys(variables)[0] || '', onlyIf:false, whenVar:Object.keys(variables)[0] || '', whenOp:'>=', whenValue:'1' }); renderInspector(); const cards=$('inspector').querySelectorAll('details[data-action-card]'); if(cards.length)cards[cards.length-1].open=true; updateCode(); }
+    if (event.target.dataset.deleteAction !== undefined) { record(); o.actions.splice(Number(event.target.dataset.deleteAction), 1); renderInspector(); updateCode(); }
+  });
+  $('layers').addEventListener('click', event => { const row = event.target.closest('[data-layer]'); if (!row || mode === 'test') return; selectedId = Number(row.dataset.layer); renderStage(); renderLayers(); renderInspector(); });
+  function reorder(dir) { record(); const index = items.findIndex(o => o.id === selectedId); const to = index + dir; if (index < 0 || to < 0 || to >= items.length) return; [items[index], items[to]] = [items[to], items[index]]; refresh(); }
+  $('layerUp').addEventListener('click', () => reorder(1)); $('layerDown').addEventListener('click', () => reorder(-1));
+  $('duplicate').addEventListener('click', () => duplicateSelected());
+  $('deleteElement').addEventListener('click', deleteSelected);
+  $('addVar').addEventListener('click', () => { record();
+    const name = val('newVarName').trim();
+    if (!/^[A-Za-z_][A-Za-z0-9_]{0,27}$/.test(name)) { $('varError').textContent = 'Use letters, numbers, underscores; start with a letter.'; return; }
+    if (name === '__proto__' || name === 'constructor' || name === 'prototype' || Object.hasOwn(variables, name)) { $('varError').textContent = 'That name already exists or is reserved.'; return; }
+    variables[name] = parse(val('newVarValue')); $('newVarName').value = ''; $('varError').textContent = ''; renderVariables(); renderInspector(); updateCode();
+  });
+  $('variableList').addEventListener('input', event => { if (event.target.dataset.varValue) { variables[event.target.dataset.varValue] = parse(event.target.value); updateCode(); renderStage(); } });
+  $('variableList').addEventListener('click', event => {
+    const name = event.target.dataset.delVar; if (!name) return;
+    record(); delete variables[name]; items.forEach(o => { if (o.condition?.variable === name) o.condition = null; if(o.conditions)o.conditions=o.conditions.filter(c=>c.kind==='touching'||c.variable!==name); if (o.bind === name) o.bind = Object.keys(variables)[0] || ''; o.actions = o.actions.filter(a => !((a.type === 'set' || a.type === 'add') && a.variable === name)); o.collisionRules=(o.collisionRules||[]).filter(c=> !(['set','add'].includes(c.type) && c.variable===name)); }); render();
+  });
+  $('snapToggle').addEventListener('change', event => { snap = event.target.checked; });
+  $('gridToggle').addEventListener('change', event => { showGrid = event.target.checked; renderStage(); });
+  $('canvasZoom').addEventListener('change', updateStageZoom);
+  new ResizeObserver(updateStageZoom).observe(stageShell);
+  window.addEventListener('resize', updateStageZoom);
+  $('gridSlider').addEventListener('input', event => { gridSize = Number(event.target.value); renderStage(); });
+  $('gridStyle').addEventListener('change',event=>{gridStyle=event.target.value;renderStage();});
+  $('smartGuides').addEventListener('change',event=>{smartGuides=event.target.checked;});
+  $('centerGuides').addEventListener('change',event=>{centerGuides=event.target.checked;});
+  $('testToggle').addEventListener('click', () => { if (mode === 'design') beginTest(); else { const s = $('testVars'); if (s) s.remove(); endTest(); } });
+  $('newProject').addEventListener('click', () => { stopLoops();record(); items = []; variables = { score:0 }; autoRules = [];gameLoops=[];loopNextId=1; selectedId = null; nextId = 1; mode = 'design'; tab = 'style'; customSource = false; $('source').readOnly = true; $('editSource').textContent = '✎ Edit code'; $('sourceStatus').textContent = 'Clean generated source · no comments'; const s = $('testVars'); if (s) s.remove(); render(); });
+  $('saveProject').addEventListener('click', () => download('my-project.json', saveJSON(), 'application/json'));
+  $('loadProject').addEventListener('click', () => $('projectFile').click());
+  $('projectFile').addEventListener('change', async event => { const f = event.target.files?.[0]; if (!f) return; try { loadJSON(await f.text()); } catch (err) { alert(err.message); } event.target.value = ''; });
+  $('downloadHTML').addEventListener('click', () => download('my-website.html', code(), 'text/html'));
+  $('copySource').addEventListener('click', async () => { const source = code(); try { await navigator.clipboard.writeText(source); $('copySource').textContent = '✓ Copied'; setTimeout(() => $('copySource').textContent = 'Copy', 1200); } catch { $('source').focus(); $('source').select(); document.execCommand('copy'); } });
+  $('editSource').addEventListener('click', () => {
+    if (!customSource) { $('source').value = generateHTML(); customSource = true; $('source').readOnly = false; $('editSource').textContent = '↶ Visual code'; $('sourceStatus').textContent = 'Manual code mode · download uses your edited code'; }
+    else { customSource = false; $('source').readOnly = true; $('editSource').textContent = '✎ Edit code'; $('sourceStatus').textContent = 'Clean generated source · no comments'; updateCode(); }
+  });
+  $('previewSource').addEventListener('click', () => { $('previewFrame').hidden = !$('previewFrame').hidden; if (!$('previewFrame').hidden) $('previewFrame').srcdoc = code(); $('previewSource').textContent = $('previewFrame').hidden ? 'Run code' : 'Hide preview'; });
+  $('addLoop').addEventListener('click',()=>{
+    record();gameLoops.push({id:loopNextId++,every:50,enabled:true,steps:[newStep('moveWithVars')]});renderLoops();const cards=$('loopList').querySelectorAll('details[data-loop-card]');if(cards.length)cards[cards.length-1].open=true;updateCode();
+  });
+  function addLoopCommand(index,input){
+    const l=gameLoops[index];if(!l||mode!=='design')return;
+    try{const step=parseQuickCommand(input.value);record();l.steps.push(step);renderLoops();updateCode();const row=$('loopList').querySelector(`[data-loop-card="${index}"]`);if(row)row.open=true;}
+    catch(err){const note=$('loopList').querySelector(`[data-loop-error="${index}"]`);if(note)note.textContent=err.message;}
+  }
+  $('loopList').addEventListener('keydown',e=>{if(e.key==='Enter'&&e.target.dataset.loopCommand!==undefined){e.preventDefault();addLoopCommand(Number(e.target.dataset.loopCommand),e.target);}});
+  $('loopList').addEventListener('click',e=>{
+    const t=e.target,l=gameLoops[Number(t.dataset.loop)];
+    if(t.dataset.loopCommandAdd!==undefined){const i=Number(t.dataset.loopCommandAdd);addLoopCommand(i,$('loopList').querySelector(`[data-loop-command="${i}"]`));return;}
+    if(t.dataset.loopRemove!==undefined){record();gameLoops.splice(Number(t.dataset.loopRemove),1);renderLoops();updateCode();return;}
+    if(!l)return;
+    if(t.dataset.loopAddStep!==undefined){record();l.steps.push(newStep('bounceEdges'));renderLoops();const row=$('loopList').querySelector(`[data-loop-card="${t.dataset.loop}"]`);if(row){row.open=true;const steps=row.querySelectorAll('details[data-step-card]');if(steps.length)steps[steps.length-1].open=true;}updateCode();return;}
+    if(t.dataset.stepRemove!==undefined){record();l.steps.splice(Number(t.dataset.stepRemove),1);renderLoops();updateCode();}
+  });
+  $('loopList').addEventListener('input',e=>{
+    const t=e.target,l=gameLoops[Number(t.dataset.loop)];if(!l)return;
+    if(t.dataset.key){l[t.dataset.key]=t.dataset.key==='enabled'?t.checked:t.dataset.key==='every'?clamp(Number(t.value)||50,16,10000):t.value;updateCode();return;}
+    const a=l.steps[Number(t.dataset.step)];if(!a||!t.dataset.field)return;
+    a[t.dataset.field]=['onlyIf'].includes(t.dataset.field)?t.checked:t.value;
+    updateCode();
+  });
+  $('loopList').addEventListener('change',e=>{if(['type','operation','onlyIf'].includes(e.target.dataset.field))renderLoops();});
+  function createPongStarter(){
+    if(mode==='test')endTest();record();items=[];variables={score:0,vx:4,vy:3};gameLoops=[];autoRules=[];nextId=1;loopNextId=1;canvasWidth=960;canvasHeight=540;canvasBg='#0f172a';
+    function make(type,x,y,w,he,props={}){const d=defaults[type];const o={id:nextId++,type,x,y,w,h:he,text:'',src:'',alt:'',font:'Arial',fontSize:16,weight:400,italic:false,align:'center',bg:'#ffffff',color:'#ffffff',radius:0,border:0,borderColor:'#94a3b8',opacity:100,fit:'cover',shadow:false,rotation:0,blur:0,buttonImage:'',buttonImageMode:'icon',imageX:8,imageY:12,imageW:24,imageH:24,initiallyHidden:false,tag:'div',bind:'',condition:null,actions:[],collisionRules:[],...d,...props,x,y,w,h:he};items.push(o);return o;}
+    const left=make('box',26,204,18,132,{bg:'#38bdf8'});
+    const right=make('box',916,204,18,132,{bg:'#fb7185'});
+    const ball=make('box',476,256,18,18,{bg:'#ffffff',radius:9});
+    const title=make('heading',342,20,280,50,{text:'PONG PLAYGROUND',color:'#ffffff',fontSize:25,align:'center'});
+    const tip=make('text',312,488,350,28,{text:'W / S   •   ↑ / ↓',color:'#cbd5e1',fontSize:17,align:'center'});
+    function control(key,target,dy){return make('button',-300,-300,80,30,{text:'Control',hotkey:key,holdKey:true,actions:[{type:'move',target,dx:'0',dy:String(dy),keepInside:true}]});}
+    control('w',left.id,-8);control('s',left.id,8);control('ArrowUp',right.id,-8);control('ArrowDown',right.id,8);
+    ball.collisionRules=[{target:left.id,type:'multiply',variable:'vx',value:'-1',actionTarget:ball.id},{target:right.id,type:'multiply',variable:'vx',value:'-1',actionTarget:ball.id}];
+    gameLoops=[{id:loopNextId++,every:25,enabled:true,steps:[{...newStep('moveWithVars'),target:ball.id,xvar:'vx',yvar:'vy'},{...newStep('bounceEdges'),target:ball.id,xvar:'vx',yvar:'vy',axis:'both'}]}];
+    selectedId=null;tab='style';$('canvasZoom').value='fit';render();$('loopsSection').open=true;
+  }
+  $('pongStarter').addEventListener('click',createPongStarter);
+  document.addEventListener('keydown',e=>{if(mode==='test' && !e.target.matches('input,textarea,select,[contenteditable]'))heldKeys.add(keyName(e.key));});
+  document.addEventListener('keyup',e=>heldKeys.delete(keyName(e.key)));
+  window.addEventListener('blur',()=>heldKeys.clear());
+  function addVariableEvent(){
+    const keys=Object.keys(variables);
+    if(!keys.length){alert('Create a variable first in Variables.');return;}
+    record();autoRules.push({watch:keys[0],op:'==',value:'1',target:keys[1]||keys[0],action:'set',amount:'2',source:'value',targetElement:items[0]?.id??0,dx:'20',dy:'0'});
+    renderAutoRules();renderInspector();updateCode();
+  }
+  function removeVariableEvent(i){record();autoRules.splice(i,1);renderAutoRules();renderInspector();updateCode();}
+  function updateAutoField(el){
+    const i=Number(el.dataset.auto),r=autoRules[i];if(!r)return;
+    r[el.dataset.field]=el.dataset.field==='source'?(el.checked?'variable':'value'):el.value;
+    updateCode();
+  }
+  $('addAutoRule').addEventListener('click',addVariableEvent);
+  $('autoRules').addEventListener('input',e=>{if(e.target.dataset.auto!==undefined)updateAutoField(e.target);});
+  $('autoRules').addEventListener('change',e=>{if(e.target.dataset.field==='action'){renderAutoRules();renderInspector();}});
+  $('autoRules').addEventListener('click',e=>{if(e.target.dataset.removeAuto!==undefined)removeVariableEvent(Number(e.target.dataset.removeAuto));});
+  $('themeToggle').addEventListener('click', () => { document.body.classList.toggle('dark'); const dark=document.body.classList.contains('dark'); $('themeToggle').textContent=dark?'☀ Light':'☾ Dark'; try { localStorage.setItem('pixelstudio-theme',dark?'dark':'light'); } catch {} });
+  try { if(localStorage.getItem('pixelstudio-theme')==='dark') $('themeToggle').click(); } catch {}
+  $('undoBtn').addEventListener('click',undo);
+  $('redoBtn').addEventListener('click',redo);
+  $('centerBtn').addEventListener('click',centerSelected);
+  $('addCenterText').addEventListener('click',()=>{ add('text',Math.round((canvasWidth-defaults.text.w)/2),Math.round((canvasHeight-defaults.text.h)/2)); });
+  $('toggleCode').addEventListener('click',()=>{ const e=$('source'); e.hidden=!e.hidden; $('toggleCode').textContent=e.hidden?'Show code':'Hide code'; });
+  $('editSource').addEventListener('click',()=>{ $('source').hidden=false; $('toggleCode').textContent='Hide code'; });
+  document.addEventListener('keydown',event=>{
+    if(mode!=='design')return;
+    const el=event.target;
+    const editing=el.matches('input,textarea,select,[contenteditable="true"]') || !!el.closest('[contenteditable="true"]');
+    if(editing)return;
+    const key=event.key.toLowerCase(),mod=event.ctrlKey||event.metaKey;
+    if(mod&&key==='z'){event.preventDefault(); event.shiftKey?redo():undo();return;}
+    if(mod&&key==='y'){event.preventDefault();redo();return;}
+    if(mod&&key==='c'){if(selected()){event.preventDefault();copiedElement=structuredClone(selected());}return;}
+    if(mod&&key==='v'){if(copiedElement){event.preventDefault();record();const o=structuredClone(copiedElement);o.id=nextId++;o.x=clamp(o.x+gridSize,0,Math.max(0,canvasWidth-o.w));o.y=clamp(o.y+gridSize,0,Math.max(0,canvasHeight-o.h));items.push(o);selectedId=o.id;copiedElement=structuredClone(o);render();}return;}
+    if(mod&&key==='d'){if(selected()){event.preventDefault();duplicateSelected();}return;}
+    if((key==='backspace'||key==='delete')&&!mod){if(selected()){event.preventDefault();deleteSelected();}}
+  });
+  add('heading', 48, 55); add('text', 48, 145); add('button', 48, 240); selectedId = null; render(); history=[]; future=[];
+})();
+</script>
+</body>
+</html>
